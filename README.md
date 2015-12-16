@@ -1,4 +1,5 @@
 ### A simple package to simulate Respondent-driven Sampling referral chains and trees
+#### [rdssim Reference manual](http://homepages.cae.wisc.edu/~khabbazian/pdfs/rdssim.pdf)
 
 ### Install using the devtools package.
 ```
