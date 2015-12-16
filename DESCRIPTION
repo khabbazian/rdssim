@@ -1,11 +1,11 @@
 Package: rdssim
 Type: Package
 Title: A simple Respondent-driven sampling simulator 
-Version: 1.0
+Version: 0.10
 Date: 2015-12-15
 Author: Mohammad Khabbazian
 Maintainer: Mohammad Khabbazian <khabbazian@wisc.edu>
-Description: It simulate the referrel chains and trees.  
+Description: It simulate the referral chains and trees.  
 License: GNU (>= 2)
 Imports: Rcpp (>= 0.12.2), RcppEigen (>= 0.3.2.5.1)
 LinkingTo: Rcpp, RcppEigen
