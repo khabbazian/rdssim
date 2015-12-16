@@ -4,10 +4,10 @@
 \alias{adj2list}
 \title{Convert adjacency matrix to adjacency list}
 \usage{
-adj2list(X)
+adj2list(X_)
 }
 \arguments{
-\item{X}{adjacency matrix}
+\item{X_}{adjacency matrix}
 }
 \description{
 Convert adjacency matrix to adjacency list
