@@ -2,8 +2,6 @@
 
 export(HH_mean)
 export(HT_mean)
-export(adj2list)
-export(rdssimMarkov)
 export(sample_mean)
 useDynLib(rdssim)
 importFrom(Rcpp, evalCpp)
