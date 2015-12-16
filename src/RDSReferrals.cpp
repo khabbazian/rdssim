@@ -13,7 +13,7 @@
 enum ReferralType{SIMP_RW, AC_RW};
 
 // checks if nodes 1 is in the list of node2
-bool is_wedge(const AdjList &adjlist, const int node1, const int node2){
+bool are_not_neighbor(const AdjList &adjlist, const int node1, const int node2){
 
     RASSERT( node1 < adjlist.size() );
     RASSERT( node2 < adjlist.size() );
@@ -21,10 +21,12 @@ bool is_wedge(const AdjList &adjlist, const int node1, const int node2){
     if(node1 == node2 ) 
         return 0;
 
-    for(auto item:adjlist[node1])
-        if(item == node2)
-            return 0;
-    return 1;
+    //for(auto item:adjlist[node1])
+    //    if(item == node2)
+    //        return 0;
+    //return 1;
+    const auto l = adjlist[node1];
+    return !(std::binary_search(l.begin(), l.end(), node2));
 }
 
 
@@ -36,10 +38,12 @@ bool are_neighbor(const AdjList &adjlist, const int node1, const int node2){
     if(node1 == node2 ) 
         return 1;
 
-    for(auto item:adjlist[node1])
-        if( item == node2)
-            return 1;
-    return 0;
+    //for(auto item:adjlist[node1])
+    //    if( item == node2)
+    //        return 1;
+    
+    const auto l = adjlist[node1];
+    return std::binary_search(l.begin(), l.end(), node2);
 }
 
 template<int nReferrals>
@@ -59,41 +63,50 @@ vector<Referral> refer_next_node_ac_rw(const AdjList &adjlist, const int cNode, 
 
     NodePairVector possibleReferrals;
     int typeOneNCandids = 0, typeTwoNCandids = 0;
-    for(auto item1:list){
+    for(auto item1:list)
         for(auto item2:list)
-            if ( is_wedge(adjlist, item1, item2) )
+            if ( are_not_neighbor(adjlist, item1, item2) )
                 possibleReferrals.push_back( NodePair(item1, item2) );
+    typeOneNCandids = possibleReferrals.size();
 
-        typeOneNCandids = possibleReferrals.size();
+    for(auto item:list)
+        if ( are_not_neighbor(adjlist, prevNode, item) )
+            possibleReferrals.push_back( NodePair(item, prevNode) );
+    typeTwoNCandids = possibleReferrals.size() - typeOneNCandids;
 
-        for(auto item2:list)
-            if ( is_wedge(adjlist, prevNode, item2) )
-                possibleReferrals.push_back( NodePair(item2, prevNode) );
-
-        typeTwoNCandids = possibleReferrals.size() - typeOneNCandids;
-    }
 
     RASSERT( typeOneNCandids + typeTwoNCandids == possibleReferrals.size() );
     const int nCandids = typeOneNCandids + typeTwoNCandids;
-    {
-        int counter = 0;
-        for(auto item:possibleReferrals)
-            counter += get<0>(item) == nextNode ? 1 : 0;
-        weight = counter/(double) nCandids;
+    {//FIXME trun it into sth more useful
+        //int counter = 0;
+        //for(auto item:possibleReferrals)
+        //    counter += get<0>(item) == nextNode ? 1 : 0;
+        //weight = counter/(double) nCandids;
+        weight = 1;
     }
 
-    //Handling special cases
-    if( !nCandids ){
+    
+    if( !nCandids ){//Handling special cases
         Rf_warning(("cN "+to_string(cNode)+". Zero candid list!").c_str());
         return refer_next_node<nReferrals>(adjlist, cNode, prevNode, (ReferralType) 0, generator);
     }
 
-    if( nReferrals == 1 || nCandids == 1 ){
-        IntDist dist(0, nCandids-1);
-        const int id = dist(generator);
+    if( nReferrals == 1 || nCandids == 1 ){ //single referral for the Markov chain/tree simulation
+        IntDist coin(0, 1);
+        int acRefType = coin(generator), id=0;
+        if( (acRefType == 0 || typeTwoNCandids==0) && typeOneNCandids>0 ){ //type one referral
+            IntDist dist(0, typeOneNCandids-1);
+            id = dist(generator);
+        } else {
+            IntDist dist(0, typeTwoNCandids-1);
+            id = typeOneNCandids + dist(generator);
+        }
+        RASSERT(id < possibleReferrals.size() );
         nextNode = get<0>( possibleReferrals[id] );
         return vector<Referral> { make_tuple(nextNode,weight) };
+
     } else if( nReferrals == 2 ){
+
         //@this moment I have no idea about the best scenario for this type of referral
         // here's just the first thing that came to mind
         IntDist distTypeOne(0, typeOneNCandids-1);
@@ -312,6 +325,8 @@ Matrix rdssimMarkov(Rcpp::List rcpp_adjlist, string rType,
     RASSERT( nReferrals > 0 );
     RASSERT( seedNode   > 0 );
 
+
+
     //NOTE: seedNode; It has to be modified from R array format that indexing starts from 1
     seedNode = seedNode - 1;
 
@@ -321,8 +336,14 @@ Matrix rdssimMarkov(Rcpp::List rcpp_adjlist, string rType,
         AdjList::value_type tmp;
         for(auto item:Rcpp::NumericVector(l))
             tmp.push_back(item);
-        adjlist.push_back( tmp );
+        adjlist.push_back(tmp);
     }
+
+    //FIXME add it as an input argument
+    bool sortAdjacancyList = false;
+    if( sortAdjacancyList )
+        for (auto l:adjlist)
+            sort(l.begin(), l.end());
 
     if( seedNode < 0 || seedNode >= adjlist.size() )
         Rf_error("The seed node is not in the range!");
