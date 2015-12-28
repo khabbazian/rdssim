@@ -13,7 +13,7 @@
 enum ReferralType{SIMP_RW, AC_RW};
 
 // checks if nodes 1 is in the list of node2
-bool are_not_neighbor(const AdjList &adjlist, const int node1, const int node2){
+inline bool are_not_neighbor(const AdjList &adjlist, const int node1, const int node2){
 
     RASSERT( node1 < adjlist.size() );
     RASSERT( node2 < adjlist.size() );
@@ -30,7 +30,7 @@ bool are_not_neighbor(const AdjList &adjlist, const int node1, const int node2){
 }
 
 
-bool are_neighbor(const AdjList &adjlist, const int node1, const int node2){
+inline bool are_neighbor(const AdjList &adjlist, const int node1, const int node2){
 
     RASSERT( node1 < adjlist.size() );
     RASSERT( node2 < adjlist.size() );
@@ -51,7 +51,6 @@ vector<Referral> refer_next_node(const AdjList &, const int, const int, const Re
 template<int nReferrals>
 vector<Referral> refer_next_node_ac_rw(const AdjList &, const int, const int, const ReferralType, RandEngine &);
 
-
 template<int nReferrals>
 vector<Referral> refer_next_node_ac_rw(const AdjList &adjlist, const int cNode, const int prevNode, 
         const ReferralType rt,
@@ -69,14 +68,16 @@ vector<Referral> refer_next_node_ac_rw(const AdjList &adjlist, const int cNode, 
                 possibleReferrals.push_back( NodePair(item1, item2) );
     typeOneNCandids = possibleReferrals.size();
 
-    for(auto item:list)
-        if ( are_not_neighbor(adjlist, prevNode, item) )
-            possibleReferrals.push_back( NodePair(item, prevNode) );
-    typeTwoNCandids = possibleReferrals.size() - typeOneNCandids;
+    for(auto item1:list)
+        for(auto item2:adjlist[item1])
+            if ( are_not_neighbor(adjlist, cNode, item2) )
+                possibleReferrals.push_back( NodePair(item1, item2) );
 
+    typeTwoNCandids = possibleReferrals.size() - typeOneNCandids;
 
     RASSERT( typeOneNCandids + typeTwoNCandids == possibleReferrals.size() );
     const int nCandids = typeOneNCandids + typeTwoNCandids;
+
     {//FIXME trun it into sth more useful
         //int counter = 0;
         //for(auto item:possibleReferrals)
@@ -92,7 +93,8 @@ vector<Referral> refer_next_node_ac_rw(const AdjList &adjlist, const int cNode, 
     }
 
     if( nReferrals == 1 || nCandids == 1 ){ //single referral for the Markov chain/tree simulation
-        IntDist coin(0, 1);
+
+        /*IntDist coin(0, 1);
         int acRefType = coin(generator), id=0;
         if( (acRefType == 0 || typeTwoNCandids==0) && typeOneNCandids>0 ){ //type one referral
             IntDist dist(0, typeOneNCandids-1);
@@ -100,46 +102,54 @@ vector<Referral> refer_next_node_ac_rw(const AdjList &adjlist, const int cNode, 
         } else {
             IntDist dist(0, typeTwoNCandids-1);
             id = typeOneNCandids + dist(generator);
-        }
+        }*/
+
+        IntDist dist(0, nCandids-1);
+        const int id = dist(generator);
+
         RASSERT(id < possibleReferrals.size() );
         nextNode = get<0>( possibleReferrals[id] );
+
         return vector<Referral> { make_tuple(nextNode,weight) };
 
-    } else if( nReferrals == 2 ){
+    } else{ RASSERT(0); /*The following highly depends on the interpretation of the ac-rw in real application*/ } 
 
-        //@this moment I have no idea about the best scenario for this type of referral
-        // here's just the first thing that came to mind
-        IntDist distTypeOne(0, typeOneNCandids-1);
-        IntDist distTypeTwo(0, typeTwoNCandids-1);
-        const int idOne = distTypeOne(generator);
-        const int idTwo = distTypeTwo(generator);
+//        if( nReferrals == 2 ){
+//
+//        //@this moment I have no idea about the best scenario for this type of referral
+//        // here's just the first thing that came to mind
+//        IntDist distTypeOne(0, typeOneNCandids-1);
+//        IntDist distTypeTwo(0, typeTwoNCandids-1);
+//        const int idOne = distTypeOne(generator);
+//        const int idTwo = distTypeTwo(generator);
+//
+//        const auto node1 = get<0>( possibleReferrals[idOne] );
+//        const auto node2 = get<0>( possibleReferrals[idTwo] );
+//
+//        return vector<Referral> {make_tuple(node1,weight), make_tuple(node2,weight)};
+//    } else if( nReferrals == 3 ){
+//        vector<Referral> refVec;
+//
+//        if( typeOneNCandids > 0 ){
+//            IntDist distTypeOne(0, typeOneNCandids-1);
+//            const int idOne = distTypeOne(generator);
+//            const auto node1 = get<0>( possibleReferrals[idOne] );
+//            const auto node2 = get<1>( possibleReferrals[idOne] );
+//
+//            refVec.push_back( make_tuple(node1, weight) );
+//            refVec.push_back( make_tuple(node2, weight) );
+//        }
+//
+//        if( typeTwoNCandids > 0 ){
+//            IntDist distTypeTwo(0, typeTwoNCandids-1);
+//            const int idTwo  = distTypeTwo(generator);
+//            const auto node3 = get<0>( possibleReferrals[idTwo] );
+//            refVec.push_back( make_tuple(node3, weight) );
+//        }
+//
+//        return refVec;
+//    }
 
-        const auto node1 = get<0>( possibleReferrals[idOne] );
-        const auto node2 = get<0>( possibleReferrals[idTwo] );
-
-        return vector<Referral> {make_tuple(node1,weight), make_tuple(node2,weight)};
-    } else if( nReferrals == 3 ){
-        vector<Referral> refVec;
-
-        if( typeOneNCandids > 0 ){
-            IntDist distTypeOne(0, typeOneNCandids-1);
-            const int idOne = distTypeOne(generator);
-            const auto node1 = get<0>( possibleReferrals[idOne] );
-            const auto node2 = get<1>( possibleReferrals[idOne] );
-
-            refVec.push_back( make_tuple(node1, weight) );
-            refVec.push_back( make_tuple(node2, weight) );
-        }
-
-        if( typeTwoNCandids > 0 ){
-            IntDist distTypeTwo(0, typeTwoNCandids-1);
-            const int idTwo  = distTypeTwo(generator);
-            const auto node3 = get<0>( possibleReferrals[idTwo] );
-            refVec.push_back( make_tuple(node3, weight) );
-        }
-
-        return refVec;
-    }
 }
 
 
@@ -325,18 +335,16 @@ Matrix rdssimMarkov(Rcpp::List rcpp_adjlist, string rType,
     RASSERT( nReferrals > 0 );
     RASSERT( seedNode   > 0 );
 
-
-
-    //NOTE: seedNode; It has to be modified from R array format that indexing starts from 1
+    //NOTE: seedNode; It has to be modified from R array format that indexing starts from 1 to cpp format
     seedNode = seedNode - 1;
 
     //AdjList adjlist = adj2list(A_);
     AdjList adjlist;
     for(auto l:rcpp_adjlist){
-        AdjList::value_type tmp;
-        for(auto item:Rcpp::NumericVector(l))
-            tmp.push_back(item);
-        adjlist.push_back(tmp);
+        //AdjList::value_type tmp;
+        //for(auto item:Rcpp::NumericVector(l))
+        //    tmp.push_back(item);
+        adjlist.push_back( Rcpp::as<AdjList::value_type>(l) );
     }
 
     //FIXME add it as an input argument
