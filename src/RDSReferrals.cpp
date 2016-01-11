@@ -54,13 +54,12 @@ vector<Referral> refer_next_node_ac_rw(const AdjList &adjlist, const int cNode, 
 
     NodePairVector possibleReferrals;
     possibleReferrals.reserve(1024);
-    int typeOneNCandids = 0, typeTwoNCandids = 0;
 
     for(auto item1:list)
         for(auto item2:list)
             if ( are_not_neighbor(adjlist, item1, item2) )
                 possibleReferrals.push_back( NodePair(item1, item2) );
-    typeOneNCandids = possibleReferrals.size();
+    const int typeOneNCandids = possibleReferrals.size();
 
     for(auto item1:list)
         if(nReferrals == 1){
@@ -71,9 +70,8 @@ vector<Referral> refer_next_node_ac_rw(const AdjList &adjlist, const int cNode, 
             if ( are_not_neighbor(adjlist, item1, prevNode) )
                 possibleReferrals.push_back( NodePair(item1, prevNode) );
         }
-
-    typeTwoNCandids = possibleReferrals.size() - typeOneNCandids;
     const int nCandids = possibleReferrals.size() ;
+    const int typeTwoNCandids = nCandids - typeOneNCandids;
 
     if( !nCandids ){//Handling special cases
         Rf_warning(("cN "+to_string(cNode)+". Zero candid list!").c_str());
@@ -102,12 +100,13 @@ vector<Referral> refer_next_node_ac_rw(const AdjList &adjlist, const int cNode, 
 
     } else if( nReferrals == 2 ){
 
+        RASSERT(0)
         //@this moment I have no idea about the best scenario for this type of referral
         // here's just the first thing that came to mind
         IntDist distTypeOne(0, typeOneNCandids-1);
         IntDist distTypeTwo(0, typeTwoNCandids-1);
         const int idOne = distTypeOne(generator);
-        const int idTwo = distTypeTwo(generator);
+        const int idTwo = typeOneNCandids + distTypeTwo(generator);
 
         const auto node1 = get<0>( possibleReferrals[idOne] );
         const auto node2 = get<0>( possibleReferrals[idTwo] );
@@ -128,7 +127,7 @@ vector<Referral> refer_next_node_ac_rw(const AdjList &adjlist, const int cNode, 
 
         if( typeTwoNCandids > 0 ){
             IntDist distTypeTwo(0, typeTwoNCandids-1);
-            const int idTwo  = distTypeTwo(generator);
+            const int idTwo  = typeOneNCandids + distTypeTwo(generator);
             const auto node3 = get<0>( possibleReferrals[idTwo] );
             refVec.push_back( make_tuple(node3, weight) );
         }
