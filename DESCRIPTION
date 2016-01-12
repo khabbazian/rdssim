@@ -1,7 +1,7 @@
 Package: rdssim
 Type: Package
 Title: A simple Respondent-driven sampling simulator 
-Version: 0.13
+Version: 0.14
 Date: 2015-12-15
 Author: Mohammad Khabbazian
 Maintainer: Mohammad Khabbazian <khabbazian@wisc.edu>
