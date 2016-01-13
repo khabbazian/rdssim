@@ -34,7 +34,7 @@ sample_mean  <- function(chain, trait.vec){
 VH_mean  <- function(chain, trait.vec, inclusion.probability){
     stopifnot(length(inclusion.probability)==length(trait.vec))
     #NOTE: removing vertices with na trait.
-    chain <- chain[   -which(!(chain %in% which(is.na(trait.vec))) )   ]
+    chain <- chain[ -which( is.na(trait.vec[chain] ) ) ] 
 
     if(length(chain) == 0)
         return(NA)
@@ -69,7 +69,7 @@ HT_mean  <- function(chain, trait.vec, inclusion.probability){
     stopifnot(length(inclusion.probability)==length(trait.vec))
 
     #NOTE: removing vertices with na trait.
-    chain <- chain[   -which(!(chain %in% which(is.na(trait.vec))) )   ]
+    chain <- chain[ -which( is.na(trait.vec[chain] ) ) ] 
 
     if(length(chain) == 0)
         return(NA)
