@@ -6,7 +6,7 @@ Date: 2015-12-15
 Author: Mohammad Khabbazian
 Maintainer: Mohammad Khabbazian <khabbazian@wisc.edu>
 Description: It simulate the referral chains and trees.  
-License: GNU (>= 2)
+License: GPL (>= 2)
 Imports: Rcpp (>= 0.12.2), RcppEigen (>= 0.3.2.5.1)
 LinkingTo: Rcpp, RcppEigen
 VignetteBuilder: knitr

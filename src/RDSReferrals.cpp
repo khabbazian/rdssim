@@ -295,7 +295,8 @@ Matrix sim_referral_tree(const AdjList &adjlist,
 
 
 // [[Rcpp::export]]
-AdjList adj2list(SEXP X_) {
+std::vector<std::vector<double> >  adj2list(SEXP X_) 
+{
 
     typedef Eigen::Map<Eigen::MatrixXd> MapMatd;
     const MapMatd A(Rcpp::as<MapMatd>(X_));
@@ -316,8 +317,8 @@ AdjList adj2list(SEXP X_) {
 }
 
 // [[Rcpp::export]]
-Matrix rdssimMarkov(Rcpp::List rcpp_adjlist, string rType,
-        int nSamples, int nReferrals=1, int seedNode=1, int rseed=1)
+Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjlist, std::string rType,
+        int nSamples, int nReferrals, int seedNode, int rseed)
 {
 
     //NOTE: nReferrals == 1; chain

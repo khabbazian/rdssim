@@ -2,16 +2,19 @@
 % Please edit documentation in R/RDSEstimators.R
 \name{sample_mean}
 \alias{sample_mean}
-\title{Sample mean estimator}
+\title{Sample mean estimation of the mean}
 \usage{
 sample_mean(chain, trait.vec)
 }
 \arguments{
 \item{chain}{a sequence of node indices that represent the referral process.}
 
-\item{trait.vec}{is a vector of size number of nodes in the network with corresponding trait values.}
+\item{trait.vec}{is a vector of size number of nodes in the network with 0-1 values that for example indicate a specific trait.}
+}
+\value{
+mean(trait.vec[chain], na.rm=TRUE)
 }
 \description{
-Sample mean estimator
+Sample mean estimation of the population mean using the given sequence of the vertices.
 }
 
