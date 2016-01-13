@@ -19,6 +19,6 @@ adj2list <- function(A) {
 #'@param rseed random seed for random number generators.
 #'@export 
 rdssim <- function(adjlist, rType, nSamples, nReferrals = 1L, seedNode = 1L, rseed = 1L) {
-    .Call('rdssim_rdssim_cpp', PACKAGE = 'rdssim', rcpp_adjlist, rType, nSamples, nReferrals, seedNode, rseed)
+    .Call('rdssim_rdssim_cpp', PACKAGE = 'rdssim', adjlist, rType, nSamples, nReferrals, seedNode, rseed)
 }
 
