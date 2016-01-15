@@ -4,14 +4,14 @@
 \alias{VH_mean}
 \title{Volz-Heckathorn estimation of the mean}
 \usage{
-VH_mean(chain, trait.vec, inc.prob)
+VH_mean(chain, trait.vec, inclusion.probability)
 }
 \arguments{
 \item{chain}{a sequence of node indices that represent the referral process.}
 
 \item{trait.vec}{is a vector of size number of nodes in the network with 0-1 values that for example indicate a specific trait.}
 
-\item{inc.prob}{is a vector of size number of nodes in the network with the corresponding stationary probabilities.}
+\item{inclusion.probability}{is a vector of size number of nodes in the network with the corresponding stationary probabilities.}
 }
 \value{
 the Volz-Heckathorn estimation of the population mean.
@@ -20,7 +20,7 @@ the Volz-Heckathorn estimation of the population mean.
 Volz-Heckathorn estimation of the population mean using the given sequence of the vertices.
 }
 \details{
-Let x_1, x_2, \\cdots, x_n be a sequence of samples from a finite population. Furthermore, let \\pi_1, \\cdots, \\pi_N denote the stationary distribution. Then \\mu_\{VH\} = 1/(\\sum_\{i=1\}^n 1/\\pi_\{x_i\}) \\sum_\{i=1\}^n x_i/\\pi_\{x_i\}.
+Let x_1, x_2, \\cdots, x_n be a sequence of samples from a finite population. Furthermore, let \\pi_1, \\cdots, \\pi_N denote the stationary distribution. Then \\mu_{VH} = 1/(\\sum_{i=1}^n 1/\\pi_{x_i}) \\sum_{i=1}^n x_i/\\pi_{x_i}.
 }
 \references{
 Volz, Erik and Heckathorn, Douglas D (2008); ``Probability based estimation theory for respondent driven sampling'', Journal of official statistics.

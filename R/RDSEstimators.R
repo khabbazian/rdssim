@@ -26,7 +26,7 @@ sample_mean  <- function(chain, trait.vec){
 #' Volz, Erik and Heckathorn, Douglas D (2008); ``Probability based estimation theory for respondent driven sampling'', Journal of official statistics.
 #'
 #'@details
-#' Let x_1, x_2, \cdots, x_n be a sequence of samples from a finite population. Furthermore, let \pi_1, \cdots, \pi_N denote the stationary distribution. Then \mu_{VH} = 1/(\sum_{i=1}^n 1/\pi_{x_i}) \sum_{i=1}^n x_i/\pi_{x_i}.
+#' Let x_1, x_2, \\cdots, x_n be a sequence of samples from a finite population. Furthermore, let \\pi_1, \\cdots, \\pi_N denote the stationary distribution. Then \\mu_{VH} = 1/(\\sum_{i=1}^n 1/\\pi_{x_i}) \\sum_{i=1}^n x_i/\\pi_{x_i}.
 #'
 #'@return the Volz-Heckathorn estimation of the population mean.
 #'
@@ -60,7 +60,7 @@ VH_mean  <- function(chain, trait.vec, inclusion.probability){
 #' Horvitz, D. G.; Thompson, D. J. (1952) ``A generalization of sampling without replacement from a finite universe'', Journal of the American Statistical Association,
 #'
 #'@details
-#' Let x_1, x_2, \cdots, x_n be a sequence of samples from a finite population of size N. Furthermore, let \pi_1, \cdots, \pi_N be the inclusion of probabilities. Then \mu_{HT} = 1/N*\sum_{i=1}^n x_i/\pi_{x_i}.
+#' Let x_1, x_2, \\cdots, x_n be a sequence of samples from a finite population of size N. Furthermore, let \\pi_1, \\cdots, \\pi_N be the inclusion of probabilities. Then \\mu_{HT} = 1/N*\\sum_{i=1}^n x_i/\\pi_{x_i}.
 #'
 #'@return the Horvitz-Thompson estimation of the population mean.
 #'

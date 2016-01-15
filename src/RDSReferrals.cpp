@@ -349,7 +349,7 @@ Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjlist, std::string rType,
     else 
         Rf_error("Undefined referral type!");
 
-    const bool Markovian = false;
+    const bool Markovian = true;
 
     Matrix logMatrix(nSamples, 4);
     colnames(logMatrix) = Rcpp::CharacterVector::create("participant_i", "participant_i+1", "weight", "wave");
