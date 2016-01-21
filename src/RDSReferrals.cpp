@@ -282,7 +282,17 @@ Matrix sim_referral_tree(const AdjList &adjlist,
                 toBeVisited.push( QObject( get<0>(nextReferral), currentNode, get<1>( nextReferral ), wave+1) );
             }
         }else{
-            const auto nextReferralVec = refer_next_node<3>(adjlist, currentNode, previousNode, rt, generator);
+            //const auto nextReferralVec = refer_next_node<3>(adjlist, currentNode, previousNode, rt, generator);
+            
+            vector<Referral>  nextReferralVec;
+            if(nReferrals == 1)
+                nextReferralVec = refer_next_node<1>(adjlist, currentNode, previousNode, rt, generator);
+            else if(nReferrals == 2)
+                nextReferralVec = refer_next_node<2>(adjlist, currentNode, previousNode, rt, generator);
+            else if(nReferrals == 3)
+                nextReferralVec = refer_next_node<3>(adjlist, currentNode, previousNode, rt, generator);
+            else RASSERT(0)
+
             for(int i=0; i < nextReferralVec.size(); ++i){
                 const auto nextReferral    = nextReferralVec[i];
                 toBeVisited.push( QObject( get<0>(nextReferral), currentNode, get<1>( nextReferral ), wave+1) );
@@ -317,13 +327,14 @@ std::vector<std::vector<double> >  adj2list(SEXP X_)
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjlist, std::string rType,
+Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjlist, std::string rType, 
         int nSamples, int nReferrals, int seedNode, int rseed)
 {
 
     //NOTE: nReferrals == 1; chain
     //NOTE: nReferrals >  1; a tree
     //
+    bool Markovian = true;
     AdjList adjlist;
     for(auto l:rcpp_adjlist)
         adjlist.push_back( Rcpp::as<AdjList::value_type>(l) );
@@ -348,8 +359,6 @@ Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjlist, std::string rType,
         rt = AC_RW;
     else 
         Rf_error("Undefined referral type!");
-
-    const bool Markovian = true;
 
     Matrix logMatrix(nSamples, 4);
     colnames(logMatrix) = Rcpp::CharacterVector::create("participant_i", "participant_i+1", "weight", "wave");

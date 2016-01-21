@@ -1,7 +1,8 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#define RASSERT(condition){if(!(condition)){Rf_error(("error@"+to_string(__LINE__)+":"+__FILE__).c_str());}}
+//#define RASSERT(condition){if(!(condition)){Rf_error(("error@"+to_string(__LINE__)+":"+__FILE__).c_str());}}
+#define RASSERT(condition){}
 
 #include <iostream>
 #include <algorithm>
