@@ -11,6 +11,14 @@
 //NOTE: AC_RW:  AC random walk choses uniformly from the set of nodes form wedge
 //NOTE: with current node.
 
+
+// returns a random integer X in the set {l, l+1, ..., u}.
+int random_int(const int l, const int u){
+    RASSERT( l <= u );
+    double uR = l + (u+1 - l)*(double) rand()/((double) RAND_MAX + 1);
+    return (int) uR;
+}
+
 enum ReferralType{SIMP_RW, AC_RW};
 
 inline bool are_not_neighbor(const AdjList &adjlist, const int node1, const int node2){
@@ -92,8 +100,10 @@ vector<Referral> refer_next_node_ac_rw(const AdjList &adjlist, const int cNode, 
         //    id = typeOneNCandids + dist(generator);
         //}
 
-        IntDist dist(0, nCandids-1);
-        const int id = dist(generator);
+        /*IntDist dist(0, nCandids-1);
+        const int id = dist(generator);*/
+        const int id = random_int(0, nCandids-1);
+
         RASSERT(id < possibleReferrals.size() );
         nextNode = get<0>( possibleReferrals[id] );
         return vector<Referral> { make_tuple(nextNode, weight) };
@@ -159,14 +169,19 @@ vector<Referral> refer_next_node(const AdjList &adjlist, const int cNode, const 
         vector<Referral> refVec;
        
         //NOTE: scenario for referring the first node
-        IntDist firstDist(0, nNeighbors-1);
-        const int firstIdx = firstDist(generator); 
+        /*IntDist firstDist(0, nNeighbors-1);
+        const int firstIdx = firstDist(generator);*/
+        const int firstIdx = random_int(0, nNeighbors-1);
+
+
         nextNode  = list[ firstIdx ];
         RASSERT(nextNode < adjlist.size());
         refVec.push_back( make_tuple(nextNode, weight) );
 
         if (nReferrals == 1 || nNeighbors < 2) //NOTE: to generate Markov chains.
             return refVec;
+
+        RASSERT(0);
 
         //NOTE: scenario for referring the second node; a w/o replacement sampling from neighbors.
         IntDist secondDist(0, nNeighbors-2);
@@ -330,6 +345,9 @@ std::vector<std::vector<double> >  adj2list(SEXP X_)
 Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjlist, std::string rType, 
         int nSamples, int nReferrals, int seedNode, int rseed)
 {
+
+    //NOTE: set the random seed
+    srand(rseed);
 
     //NOTE: nReferrals == 1; chain
     //NOTE: nReferrals >  1; a tree
