@@ -53,8 +53,7 @@ vector<Referral> refer_next_node_ac_rw(const AdjList &, const int, const int, co
 
 template<int nReferrals>
 vector<Referral> refer_next_node_ac_rw(const AdjList &adjlist, const int cNode, const int prevNode, 
-        const ReferralType rt,
-        RandEngine &generator){
+        const ReferralType rt){
 
     int nextNode;
     double weight=1;
@@ -83,7 +82,7 @@ vector<Referral> refer_next_node_ac_rw(const AdjList &adjlist, const int cNode, 
 
     if( !nCandids ){//Handling special cases
         Rf_warning(("cN "+to_string(cNode)+". Zero candid list!").c_str());
-        return refer_next_node<nReferrals>(adjlist, cNode, prevNode, (ReferralType) 0, generator);
+        return refer_next_node<nReferrals>(adjlist, cNode, prevNode, (ReferralType) 0);
     }
 
     if( nReferrals == 1 || nCandids == 1 ){ //single referral for the Markov chain/tree simulation
@@ -108,7 +107,9 @@ vector<Referral> refer_next_node_ac_rw(const AdjList &adjlist, const int cNode, 
         nextNode = get<0>( possibleReferrals[id] );
         return vector<Referral> { make_tuple(nextNode, weight) };
 
-    } else if( nReferrals == 2 ){
+    } else 
+        RASSERT(0)
+    /*else if( nReferrals == 2 ){
 
         RASSERT(0)
         //@this moment I have no idea about the best scenario for this type of referral
@@ -143,15 +144,14 @@ vector<Referral> refer_next_node_ac_rw(const AdjList &adjlist, const int cNode, 
         }
 
         return refVec;
-    }
+    } */
 
 }
 
 
 template<int nReferrals>
 vector<Referral> refer_next_node(const AdjList &adjlist, const int cNode, const int prevNode, 
-        const ReferralType rt,
-        RandEngine &generator){
+        const ReferralType rt){
 
     RASSERT( cNode < adjlist.size() );
     RASSERT( 0 <= cNode );
@@ -173,7 +173,6 @@ vector<Referral> refer_next_node(const AdjList &adjlist, const int cNode, const 
         const int firstIdx = firstDist(generator);*/
         const int firstIdx = random_int(0, nNeighbors-1);
 
-
         nextNode  = list[ firstIdx ];
         RASSERT(nextNode < adjlist.size());
         refVec.push_back( make_tuple(nextNode, weight) );
@@ -182,7 +181,7 @@ vector<Referral> refer_next_node(const AdjList &adjlist, const int cNode, const 
             return refVec;
 
         RASSERT(0);
-
+        /*
         //NOTE: scenario for referring the second node; a w/o replacement sampling from neighbors.
         IntDist secondDist(0, nNeighbors-2);
         int secondIdx = secondDist(generator);
@@ -201,9 +200,10 @@ vector<Referral> refer_next_node(const AdjList &adjlist, const int cNode, const 
 
         refVec.push_back( make_tuple(list[ thirdIdx ], weight) );
         return refVec;
+        */
 
     } else if( rt == AC_RW ) {
-        return refer_next_node_ac_rw<nReferrals>(adjlist, cNode, prevNode, rt, generator);
+        return refer_next_node_ac_rw<nReferrals>(adjlist, cNode, prevNode, rt);
     } else 
         RASSERT(0);
 } 
@@ -228,7 +228,6 @@ Matrix sim_referral_chain(const AdjList &adjlist,
     RASSERT(logs.nrow() == chainLength);
     RASSERT(logs.ncol() == 4);
 
-    std::default_random_engine generator (rseed);
     int currentNode = seedNode, previousNode = seedNode;
 
     for(int level = 0; level<chainLength; ++level){
@@ -237,7 +236,7 @@ Matrix sim_referral_chain(const AdjList &adjlist,
         if (nNeighbors == 0)
             Rf_error("Zero neighbors! That should not happen.");
 
-        const auto nextReferralVec = refer_next_node<1>(adjlist, currentNode, previousNode, rt, generator);
+        const auto nextReferralVec = refer_next_node<1>(adjlist, currentNode, previousNode, rt);
         const auto nextReferral    = nextReferralVec[0];
 
         //NOTE: I assume that the node that enters the sampling is referred directly by a participant.
@@ -265,7 +264,6 @@ Matrix sim_referral_tree(const AdjList &adjlist,
     RASSERT(logs.nrow() == nSamples);
     RASSERT(logs.ncol() == 4);
 
-    std::default_random_engine generator (rseed);
     int currentNode = seedNode, previousNode = seedNode, wave=0;
     double weight = 1;
 
@@ -292,20 +290,20 @@ Matrix sim_referral_tree(const AdjList &adjlist,
 
         if( Markovian == true ){
             for(int i=0; i < min(nReferrals, nNeighbors); ++i){
-                const auto nextReferralVec = refer_next_node<1>(adjlist, currentNode, previousNode, rt, generator);
+                const auto nextReferralVec = refer_next_node<1>(adjlist, currentNode, previousNode, rt);
                 const auto nextReferral    = nextReferralVec[0];
                 toBeVisited.push( QObject( get<0>(nextReferral), currentNode, get<1>( nextReferral ), wave+1) );
             }
         }else{
-            //const auto nextReferralVec = refer_next_node<3>(adjlist, currentNode, previousNode, rt, generator);
+            //const auto nextReferralVec = refer_next_node<3>(adjlist, currentNode, previousNode, rt);
             
             vector<Referral>  nextReferralVec;
             if(nReferrals == 1)
-                nextReferralVec = refer_next_node<1>(adjlist, currentNode, previousNode, rt, generator);
+                nextReferralVec = refer_next_node<1>(adjlist, currentNode, previousNode, rt);
             else if(nReferrals == 2)
-                nextReferralVec = refer_next_node<2>(adjlist, currentNode, previousNode, rt, generator);
+                nextReferralVec = refer_next_node<2>(adjlist, currentNode, previousNode, rt);
             else if(nReferrals == 3)
-                nextReferralVec = refer_next_node<3>(adjlist, currentNode, previousNode, rt, generator);
+                nextReferralVec = refer_next_node<3>(adjlist, currentNode, previousNode, rt);
             else RASSERT(0)
 
             for(int i=0; i < nextReferralVec.size(); ++i){
@@ -351,7 +349,7 @@ Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjlist, std::string rType,
 
     //NOTE: nReferrals == 1; chain
     //NOTE: nReferrals >  1; a tree
-    //
+    
     bool Markovian = true;
     AdjList adjlist;
     for(auto l:rcpp_adjlist)
