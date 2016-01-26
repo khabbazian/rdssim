@@ -250,7 +250,7 @@ Matrix sim_referral_tree(const AdjList &adjlist,
     queue<QObject> toBeVisited;
     toBeVisited.push( QObject(currentNode, previousNode, weight, wave) );
 
-    for(int counter=0; counter<nSamples+1; ++counter){
+    for(int counter=0; counter<nSamples; ++counter){
 
         const int nNeighbors = adjlist[currentNode].size();
         RASSERT( nNeighbors > 0 );
@@ -264,11 +264,10 @@ Matrix sim_referral_tree(const AdjList &adjlist,
         weight       = get<2>(qObj);
         wave         = get<3>(qObj);
 
-        if( counter > 0) // Do not record the first one
-            fill_log(logs, previousNode, make_tuple(currentNode, weight), wave, counter); 
+        fill_log(logs, previousNode, make_tuple(currentNode, weight), wave, counter); 
 
         if( Markovian == true ){
-            for(int i=0; i < min(nReferrals, nNeighbors); ++i){
+            for(int i=0; i < nReferrals; ++i){
                 const auto nextReferralVec = refer_next_node<1>(adjlist, currentNode, previousNode, rt);
                 const auto nextReferral    = nextReferralVec[0];
                 toBeVisited.push( QObject( get<0>(nextReferral), currentNode, get<1>( nextReferral ), wave+1) );
@@ -320,8 +319,7 @@ std::vector<std::vector<double> >  adj2list(SEXP X_)
 // [[Rcpp::export]]
 Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjlist, std::string rType, 
         bool Markovian, 
-        int nSamples, int nReferrals, int seedNode, int rseed)
-{
+        int nSamples, int nReferrals, int seedNode, int rseed) {
 
     //NOTE: set the random seed
     srand(rseed);

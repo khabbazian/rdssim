@@ -1,5 +1,4 @@
-#ifndef TYPES_H
-#define TYPES_H
+#pragma once
 
 //#define RASSERT(condition){if(!(condition)){Rf_error(("error@"+to_string(__LINE__)+":"+__FILE__).c_str());}}
 #define RASSERT(condition){}
@@ -53,4 +52,3 @@ typedef std::vector<NodePair> NodePairVector;
 typedef std::default_random_engine RandEngine;
 typedef std::uniform_int_distribution<int> IntDist;
 
-#endif

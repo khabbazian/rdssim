@@ -19,7 +19,7 @@ adj2list <- function(A) {
 #'@param seedNode the starting vertex.
 #'@param rseed random seed for random number generators.
 #'@export 
-rdssim <- function(adjlist, rType, Markovian, nSamples, nReferrals = 1L, seedNode = 1L, rseed = 1L) {
+rdssim <- function(adjlist, rType, Markovian, nSamples, nReferrals, seedNode, rseed) {
     .Call('rdssim_rdssim_cpp', PACKAGE = 'rdssim', adjlist, rType, Markovian, nSamples, nReferrals, seedNode, rseed)
 }
 
