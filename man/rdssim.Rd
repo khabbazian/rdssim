@@ -4,13 +4,14 @@
 \alias{rdssim}
 \title{Simulates referral chains/trees for Respondent-driven sampling}
 \usage{
-rdssim(adjlist, rType, nSamples, nReferrals = 1L, seedNode = 1L,
-  rseed = 1L)
+rdssim(adjlist, rType, Markovian, nSamples, nReferrals, seedNode, rseed)
 }
 \arguments{
 \item{adjlist}{adjacency list of the input social network. It assumes that adjlist represents an undirected network. Refer to \code{adj2list}.}
 
 \item{rType}{referral type.}
+
+\item{Markovian}{if TRUE and nReferrals > 1, then the sampling process follows Markov tree assumptions.}
 
 \item{nSamples}{number of samples to be collected.}
 
