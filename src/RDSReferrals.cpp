@@ -268,6 +268,13 @@ Matrix sim_referral_tree(const AdjList &adjlist,
         weight       = get<2>(qObj);
         wave         = get<3>(qObj);
 
+
+        if( visitedNodes.find(currentNode) != visitedNodes.end() ){
+            --counter;
+            continue;
+        }
+        visitedNodes.insert(currentNode);
+
         fill_log(logs, previousNode, make_tuple(currentNode, weight), wave, counter); 
 
         if( Markovian == true ){
@@ -290,9 +297,6 @@ Matrix sim_referral_tree(const AdjList &adjlist,
             for(int i=0; i < nextReferralVec.size(); ++i){
                 const auto nextReferral    = nextReferralVec[i];
                 const int  nextNode        = get<0>(nextReferral);
-                if( visitedNodes.find(nextNode) == visitedNodes.end() )
-                    continue;
-                visitedNodes.insert(nextNode);
                 toBeVisited.push( QObject( nextNode, currentNode, get<1>(nextReferral), wave+1) );
             }
         }
@@ -300,11 +304,12 @@ Matrix sim_referral_tree(const AdjList &adjlist,
 
     RASSERT(counter>0);
     if(counter != nSamples){
+        Rcpp::Rcout<<"in counter less than nSamples"<<std::endl;
         Matrix newlogs = Matrix(counter, logs.ncol());
         for(int i=0; i<counter; ++i)
             for(int j=0; j<logs.ncol(); ++j)
                 newlogs(i,j) = logs(i,j);
-        return newlogs;
+        logs = newlogs;
     }
     return logs;
 }
