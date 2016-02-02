@@ -245,16 +245,20 @@ Matrix sim_referral_tree(const AdjList &adjlist,
     int currentNode = seedNode, previousNode = seedNode, wave=0;
     double weight = 1;
 
+    std::set<int> visitedNodes;
+
     //node, parent, weight, wave number
     typedef tuple<int, int, double, int> QObject;
     queue<QObject> toBeVisited;
     toBeVisited.push( QObject(currentNode, previousNode, weight, wave) );
 
-    for(int counter=0; counter<nSamples; ++counter){
+    int counter=0;
+    for(; counter<nSamples; ++counter){
 
         const int nNeighbors = adjlist[currentNode].size();
         RASSERT( nNeighbors > 0 );
-        RASSERT( toBeVisited.size() > 0 );
+        if( toBeVisited.size() == 0 )
+            break;
 
         const auto qObj = toBeVisited.front(); 
         toBeVisited.pop();
@@ -285,10 +289,22 @@ Matrix sim_referral_tree(const AdjList &adjlist,
 
             for(int i=0; i < nextReferralVec.size(); ++i){
                 const auto nextReferral    = nextReferralVec[i];
-                toBeVisited.push( QObject( get<0>(nextReferral), currentNode, get<1>( nextReferral ), wave+1) );
+                const int  nextNode        = get<0>(nextReferral);
+                if( visitedNodes.find(nextNode) == visitedNodes.end() )
+                    continue;
+                visitedNodes.insert(nextNode);
+                toBeVisited.push( QObject( nextNode, currentNode, get<1>(nextReferral), wave+1) );
             }
         }
+    }
 
+    RASSERT(counter>0);
+    if(Markovian ==false){
+        Matrix newlogs = Matrix(counter, logs.ncol());
+        for(int i=0; i<counter; ++i)
+            for(int j=0; j<logs.ncol(); ++j)
+                newlogs(i,j) = logs(i,j);
+        return newlogs;
     }
     return logs;
 }
