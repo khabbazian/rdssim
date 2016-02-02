@@ -299,7 +299,7 @@ Matrix sim_referral_tree(const AdjList &adjlist,
     }
 
     RASSERT(counter>0);
-    if(Markovian ==false){
+    if(counter != nSamples){
         Matrix newlogs = Matrix(counter, logs.ncol());
         for(int i=0; i<counter; ++i)
             for(int j=0; j<logs.ncol(); ++j)
