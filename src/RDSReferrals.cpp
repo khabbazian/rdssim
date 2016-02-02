@@ -304,7 +304,6 @@ Matrix sim_referral_tree(const AdjList &adjlist,
 
     RASSERT(counter>0);
     if(counter != nSamples){
-        Rcpp::Rcout<<"in counter less than nSamples"<<std::endl;
         Matrix newlogs = Matrix(counter, logs.ncol());
         for(int i=0; i<counter; ++i)
             for(int j=0; j<logs.ncol(); ++j)
