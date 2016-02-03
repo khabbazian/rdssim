@@ -269,10 +269,12 @@ Matrix sim_referral_tree(const AdjList &adjlist,
         wave         = get<3>(qObj);
 
 
-        if( visitedNodes.find(currentNode) != visitedNodes.end() ){
-            --counter;
-            continue;
-        }
+        if( !Markovian )
+            if( visitedNodes.find(currentNode) != visitedNodes.end() ){
+                --counter;
+                continue;
+            }
+
         visitedNodes.insert(currentNode);
 
         fill_log(logs, previousNode, make_tuple(currentNode, weight), wave, counter); 
