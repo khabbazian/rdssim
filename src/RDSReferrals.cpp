@@ -197,8 +197,11 @@ inline void fill_log(Matrix &logs, const int currentNode, const Referral nextRef
 }
 
 Matrix sim_referral_chain(const AdjList &adjlist,
-        const int chainLength, const int seedNode, const ReferralType rt, 
-        const unsigned int rseed, Matrix &logs){
+        const ReferralType rt, 
+        const int chainLength, 
+        const int seedNode, const unsigned int rseed, 
+        Matrix &logs){
+
 
     RASSERT(logs.nrow() == chainLength);
     RASSERT(logs.ncol() == 4);
@@ -229,18 +232,25 @@ Matrix sim_referral_chain(const AdjList &adjlist,
 }
 
 
-Matrix sim_referral_tree(const AdjList &adjlist,
-        const int nSamples, const int nReferrals,
-        const int seedNode, 
-        const ReferralType rt, 
-        const bool Markovian,
-        const unsigned int rseed, Matrix &logs){
+Matrix sim_referral_tree(
+        const AdjList &adjlist,
+        const ReferralType rt, const bool wReplacement,
+        const int nSamples,    int nReferrals,
+        const int seedNode,    const unsigned int rseed, 
+        Matrix &logs
+        ){
 
     if (adjlist[seedNode].size() == 0)
         Rf_error("The seed node is an isolated node!");
 
     RASSERT(logs.nrow() == nSamples);
     RASSERT(logs.ncol() == 4);
+
+    bool Markovian = true;
+    if(nReferrals < 0){
+        nReferrals = -1*nReferrals;
+        Markovian  = false;
+    }
 
     int currentNode = seedNode, previousNode = seedNode, wave=0;
     double weight = 1;
@@ -269,17 +279,17 @@ Matrix sim_referral_tree(const AdjList &adjlist,
         wave         = get<3>(qObj);
 
 
-        if( !Markovian )
+        if(!wReplacement){
             if( visitedNodes.find(currentNode) != visitedNodes.end() ){
                 --counter;
                 continue;
             }
-
-        visitedNodes.insert(currentNode);
+            visitedNodes.insert(currentNode);
+        }
 
         fill_log(logs, previousNode, make_tuple(currentNode, weight), wave, counter); 
 
-        if( Markovian == true ){
+        if( Markovian ){
             for(int i=0; i < nReferrals; ++i){
                 const auto nextReferralVec = refer_next_node<1>(adjlist, currentNode, previousNode, rt);
                 const auto nextReferral    = nextReferralVec[0];
@@ -306,6 +316,7 @@ Matrix sim_referral_tree(const AdjList &adjlist,
 
     RASSERT(counter>0);
     if(counter != nSamples){
+        Rcpp::Rcout<<"in counter less than nSamples"<<std::endl;
         Matrix newlogs = Matrix(counter, logs.ncol());
         for(int i=0; i<counter; ++i)
             for(int j=0; j<logs.ncol(); ++j)
@@ -340,7 +351,7 @@ std::vector<std::vector<double> >  adj2list(SEXP X_)
 
 // [[Rcpp::export]]
 Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjlist, std::string rType, 
-        bool Markovian, 
+        bool wReplacement, 
         int nSamples, int nReferrals, int seedNode, int rseed) {
 
     //NOTE: set the random seed
@@ -360,7 +371,11 @@ Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjlist, std::string rType,
             sort(l.begin(), l.end());
 
     RASSERT( nSamples   > 0 );
-    RASSERT( nReferrals > 0 );
+    RASSERT( nReferrals > -4 );
+
+    if(nReferrals == 1 && wReplacement==false)
+        nReferrals = -1; // it is implemented in sim_referral_tree 
+
     //NOTE: seedNode; It has to be modified from R array format that indexing starts from 1 to cpp format
     seedNode = seedNode - 1;
     if( seedNode < 0 || seedNode >= adjlist.size() )
@@ -377,9 +392,9 @@ Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjlist, std::string rType,
     Matrix logMatrix(nSamples, 4);
     colnames(logMatrix) = Rcpp::CharacterVector::create("participant_i", "participant_i+1", "weight", "wave");
     if(nReferrals == 1)
-        sim_referral_chain(adjlist, nSamples, seedNode, rt, rseed, logMatrix);
+        sim_referral_chain(adjlist, rt, nSamples, seedNode, rseed, logMatrix);
     else
-        sim_referral_tree(adjlist, nSamples, nReferrals, seedNode, rt, Markovian, rseed, logMatrix);
+        sim_referral_tree (adjlist, rt, wReplacement, nSamples, nReferrals, seedNode, rseed, logMatrix);
 
     return logMatrix;
 }
