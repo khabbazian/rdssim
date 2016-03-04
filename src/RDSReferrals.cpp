@@ -281,7 +281,6 @@ Matrix sim_referral_tree(
 
         if(!wReplacement){
             if( visitedNodes.find(currentNode) != visitedNodes.end() ){
-                Rcpp::Rcout<<counter<<std::endl;
                 --counter;
                 continue;
             }
