@@ -255,7 +255,8 @@ Matrix sim_referral_tree(
     int currentNode = seedNode, previousNode = seedNode, wave=0;
     double weight = 1;
 
-    std::set<int> visitedNodes;
+    set<int> visitedNodes;
+    visitedNodes.insert(currentNode);
 
     //node, parent, weight, wave number
     typedef tuple<int, int, double, int> QObject;
@@ -279,13 +280,13 @@ Matrix sim_referral_tree(
         wave         = get<3>(qObj);
 
 
-        if(!wReplacement){
-            if( visitedNodes.find(currentNode) != visitedNodes.end() ){
-                --counter;
-                continue;
-            }
-            visitedNodes.insert(currentNode);
-        }
+        //if(!wReplacement){
+        //    if( visitedNodes.find(currentNode) != visitedNodes.end() ){
+        //        --counter;
+        //        continue;
+        //    }
+        //    visitedNodes.insert(currentNode);
+        //}
 
         fill_log(logs, previousNode, make_tuple(currentNode, weight), wave, counter); 
 
@@ -293,7 +294,13 @@ Matrix sim_referral_tree(
             for(int i=0; i < nReferrals; ++i){
                 const auto nextReferralVec = refer_next_node<1>(adjlist, currentNode, previousNode, rt);
                 const auto nextReferral    = nextReferralVec[0];
-                toBeVisited.push( QObject( get<0>(nextReferral), currentNode, get<1>( nextReferral ), wave+1) );
+                const auto nextNode        = get<0>(nextReferral);
+                if( wReplacement )
+                    toBeVisited.push( QObject( nextNode, currentNode, get<1>( nextReferral ), wave+1) );
+                else if( visitedNodes.find(nextNode) != visitedNodes.end() ){
+                    toBeVisited.push( QObject( nextNode, currentNode, get<1>( nextReferral ), wave+1) );
+                    visitedNodes.insert(nextNode);
+                }
             }
         } else {
             
@@ -307,10 +314,17 @@ Matrix sim_referral_tree(
             else RASSERT(0)
 
             for(int i=0; i < nextReferralVec.size(); ++i){
-                const auto nextReferral    = nextReferralVec[i];
-                const int  nextNode        = get<0>(nextReferral);
-                toBeVisited.push( QObject( nextNode, currentNode, get<1>(nextReferral), wave+1) );
+                const auto nextReferral = nextReferralVec[i];
+                const int  nextNode     = get<0>(nextReferral);
+                if( wReplacement )
+                    toBeVisited.push( QObject( nextNode, currentNode, get<1>(nextReferral), wave+1) );
+                else if( visitedNodes.find(nextNode) != visitedNodes.end() ){
+                    toBeVisited.push( QObject( nextNode, currentNode, get<1>(nextReferral), wave+1) );
+                    visitedNodes.insert(nextNode);
+                }
             }
+
+
         }
     }
 
