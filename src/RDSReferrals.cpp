@@ -297,7 +297,7 @@ Matrix sim_referral_tree(
                 const auto nextNode        = get<0>(nextReferral);
                 if( wReplacement )
                     toBeVisited.push( QObject( nextNode, currentNode, get<1>( nextReferral ), wave+1) );
-                else if( visitedNodes.find(nextNode) != visitedNodes.end() ){
+                else if( visitedNodes.find(nextNode) == visitedNodes.end() ){
                     toBeVisited.push( QObject( nextNode, currentNode, get<1>( nextReferral ), wave+1) );
                     visitedNodes.insert(nextNode);
                 }
@@ -318,7 +318,7 @@ Matrix sim_referral_tree(
                 const int  nextNode     = get<0>(nextReferral);
                 if( wReplacement )
                     toBeVisited.push( QObject( nextNode, currentNode, get<1>(nextReferral), wave+1) );
-                else if( visitedNodes.find(nextNode) != visitedNodes.end() ){
+                else if( visitedNodes.find(nextNode) == visitedNodes.end() ){
                     toBeVisited.push( QObject( nextNode, currentNode, get<1>(nextReferral), wave+1) );
                     visitedNodes.insert(nextNode);
                 }
