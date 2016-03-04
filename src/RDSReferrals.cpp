@@ -255,7 +255,7 @@ Matrix sim_referral_tree(
     int currentNode = seedNode, previousNode = seedNode, wave=0;
     double weight = 1;
 
-    set<int> visitedNodes;
+    std::set<int> visitedNodes;
     visitedNodes.insert(currentNode);
 
     //node, parent, weight, wave number
