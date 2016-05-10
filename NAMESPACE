@@ -3,6 +3,7 @@
 export(HT_mean)
 export(VH_mean)
 export(adj2list)
+export(cmp.cov)
 export(rdssim)
 export(sample_mean)
 useDynLib(rdssim)
