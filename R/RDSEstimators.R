@@ -81,3 +81,49 @@ HT_mean  <- function(chain, trait.vec, inclusion.probability){
 }
 
 
+#' Computes the covariance between the samples in the Markov chain
+#'
+#' Computes the covariance between the samples in the Markov chain using
+#' eigenvalues and eigenvectors of the Laplacian matrix.
+#'
+#'@param A adjacency matrix of the network.
+#'@param covariates the characteristic of interest for each nodes in the network.
+#'@param distance distance between the random variable in the Markov chain of sampling.
+#'
+#'@details
+#'Let \\pi, y, and d be the stationary distribution, the covariate and the
+#'distance respectively. Then cov(y(X_i),y(X_{i+d})) = \\sum_{i=2}^N <y,f_i>^2_\\pi
+#'\lambda_i^d.
+#'
+#'
+#'@export
+cmp.cov <- function(A, covariates, distance=1){
+
+    stopifnot( isSymmetric(A) )
+    stopifnot( ncol(A) == nrow(covariates) )
+
+    Dinvh     <- diag( rowSums(A)^(-1/2) )
+    L         <- (Dinvh%*%A)%*%Dinvh
+    egnResult <- eigen(L, symmetric=TRUE)
+    Vectors   <- egnResult$vectors 
+    Values    <- egnResult$values
+
+    sqrt.stationary.dist <- sqrt( rowSums(A)/sum(rowSums(A)) )
+    n.coveriates         <- covariates*sqrt.stationary.dist
+
+    covariance <- 0
+    proj.coef  <- rep(0,length(Values))
+    proj.coef[[1]] <- (n.coveriates%*%Vectors[,1])^2
+    for(i in 2:length(Values) ){
+        covariance <- covariance + (n.coveriates %*% Vectors[,i])^2 *
+            Values[[i]]^distance
+        proj.coef[[i]] <- (n.coveriates %*% Vectors[,i])
+    }
+
+    result           <- list()
+    result$cov       <- covariance 
+    result$proj.coef <- proj.coef
+    result$pi.norm   <- sqrt(n.coveriates %*% n.coveriates)
+
+    return(result)
+}
