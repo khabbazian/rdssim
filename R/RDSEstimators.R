@@ -81,14 +81,14 @@ HT_mean  <- function(chain, trait.vec, inclusion.probability){
 }
 
 
-#' Computes the covariance between the samples in the Markov chain
+#' Computes the covariance between the samples in the Markov chain/tree
 #'
-#' Computes the covariance between the samples in the Markov chain using
-#' eigenvalues and eigenvectors of the Laplacian matrix.
+#' Computes the covariance between the samples in the Markov chain/tree using
+#' eigenvalues and eigenvectors of the Laplacian matrix of the social network.
 #'
-#'@param A adjacency matrix of the network.
-#'@param covariates the characteristic of interest for each nodes in the network.
-#'@param distance distance between the random variable in the Markov chain of sampling.
+#'@param A adjacency matrix of the undirected network.
+#'@param covariates the characteristic of interest for each node in the network.
+#'@param distance distance between the random variables in the Markov chain/tree.
 #'
 #'@details
 #'Let \\pi, y, and d be the stationary distribution, the covariate and the
@@ -97,7 +97,7 @@ HT_mean  <- function(chain, trait.vec, inclusion.probability){
 #'
 #'
 #'@export
-cmp.cov <- function(A, covariates, distance=1){
+cmp_cov <- function(A, covariates, distance=1){
 
     stopifnot( isSymmetric(A) )
     stopifnot( ncol(A) == nrow(covariates) )
