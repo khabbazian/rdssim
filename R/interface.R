@@ -11,7 +11,8 @@ adj2list <- function(A) {
 #'
 #'Simulates referral chains/trees for Respondent-driven sampling
 #'
-#'@param adjlist adjacency list of the input social network. It assumes that adjlist represents an undirected network. Refer to \code{adj2list}.
+#'@param adjList adjacency list of the input social network. It assumes that adjList represents an undirected network. Refer to \code{adj2list}.
+#'@param acAdjList AC random walk adjacency list of the input social network. Refer to \code{adj2list}.
 #'@param rType referral type.
 #'@param wRreplacement if TRUE, then the referral chain/tree will be done with replacement.
 #'@param nSamples number of samples to be collected.
@@ -19,7 +20,7 @@ adj2list <- function(A) {
 #'@param seedNode the starting vertex.
 #'@param rseed random seed for random number generators.
 #'@export 
-rdssim <- function(adjlist, rType, wRreplacement, nSamples, nReferrals, seedNode, rseed) {
-    .Call('rdssim_rdssim_cpp', PACKAGE = 'rdssim', adjlist, rType, wRreplacement, nSamples, nReferrals, seedNode, rseed)
+rdssim <- function(adjList, acAdjList, rType, wRreplacement, nSamples, nReferrals, seedNode, rseed) {
+    .Call('rdssim_rdssim_cpp', PACKAGE = 'rdssim', adjList, acAdjList, rType, wRreplacement, nSamples, nReferrals, seedNode, rseed)
 }
 

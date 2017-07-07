@@ -11,406 +11,353 @@
 //NOTE: AC_RW:  AC random walk choses uniformly from the set of nodes form wedge
 //NOTE: with current node.
 
-
 // returns a random integer X in the set {l, l+1, ..., u}.
 int random_int(const int l, const int u){
-    RASSERT( l <= u );
-    double uR = l + (u+1 - l)*(double) rand()/((double) RAND_MAX + 1);
-    return (int) uR;
+	RASSERT( l <= u );
+	double uR = l + (u+1 - l)*(double) rand()/((double) RAND_MAX + 1);
+	return (int) uR;
 }
 
 enum ReferralType{SIMP_RW, AC_RW};
 
-inline bool are_not_neighbor(const AdjList &adjlist, const int node1, const int node2){
+inline bool are_not_neighbor(const AdjList &adjList, const int node1, const int node2){
 
-    if(node1 == node2) 
-        return 0;
+	if(node1 == node2) 
+		return 0;
 
-    const auto l = adjlist[node1];
-    return !(std::binary_search(l.begin(), l.end(), node2));
+	const auto l = adjList[node1];
+	return !(std::binary_search(l.begin(), l.end(), node2));
 }
 
-inline bool are_neighbor(const AdjList &adjlist, const int node1, const int node2){
+inline bool are_neighbor(const AdjList &adjList, const int node1, const int node2){
 
-    if(node1 == node2) 
-        return 1;
+	if(node1 == node2) 
+		return 1;
 
-    const auto l = adjlist[node1];
-    return std::binary_search(l.begin(), l.end(), node2);
+	const auto l = adjList[node1];
+	return std::binary_search(l.begin(), l.end(), node2);
 }
 
-template<int nReferrals>
-vector<Referral> refer_next_node(const AdjList &, const int, const int, const ReferralType);
+void refer_next_node(const AdjList &, const AdjList &, const int, const int, const int, const ReferralType, vector<Referral>&);
 
-template<int nReferrals>
-vector<Referral> refer_next_node_ac_rw(const AdjList &adjlist, const int cNode, const int prevNode, 
-        const ReferralType rt){
+void enumerate_ac_rw_possible_referrals(const AdjList& adjList, const int cNode, vector<int>& possibleReferrals){
 
-    double weight=1;
-    const auto list = adjlist[cNode];
+	const auto list = adjList[cNode];
+	for(auto item1:list)
+		for(auto item2:list)
+			if ( are_not_neighbor(adjList, item1, item2) )
+				possibleReferrals.push_back( item1 );
 
-    NodePairVector possibleReferrals;
-    possibleReferrals.reserve(1024);
+	for(auto item1:list)
+		for(auto item2:adjList[item1])
+			if ( are_not_neighbor(adjList, item2, cNode) )
+				possibleReferrals.push_back( item1 );
+}
 
-    for(auto item1:list)
-        for(auto item2:list)
-            if ( are_not_neighbor(adjlist, item1, item2) )
-                possibleReferrals.push_back( NodePair(item1, item2) );
+void refer_next_node_ac_rw(const AdjList &adjList, const AdjList &acAdjList, 
+		const int cNode, const int prevNode, 
+		const int nReferrals, const ReferralType rt, 
+		vector<Referral>& refVec
+		){
 
-    const int typeOneNCandids = possibleReferrals.size();
 
-    if(nReferrals == 1){
-        for(auto item1:list)
-            for(auto item2:adjlist[item1])
-                if ( are_not_neighbor(adjlist, item2, cNode) )
-                    possibleReferrals.push_back( NodePair(item1, item2) );
-    } else { // refers a node that is not connected to the prev node
-        for(auto item1:list)
-            if ( are_not_neighbor(adjlist, item1, prevNode) )
-                possibleReferrals.push_back( NodePair(item1, prevNode) );
-    }
+	//vector<int> possibleReferrals;
+	//possibleReferrals.reserve(1024);
+	//enumerate_ac_rw_possible_referrals(adjList, cNode, possibleReferrals);
 
-    const int nCandids = possibleReferrals.size() ;
-    const int typeTwoNCandids = nCandids - typeOneNCandids;
+	const auto& possibleReferrals = acAdjList[cNode];
+	const int nCandids = possibleReferrals.size() ;
+	const double weight = 1;
 
-    if( !nCandids ){//Handling special cases
-        Rf_warning(("cN "+to_string(cNode)+". Zero candid list!").c_str());
-        return refer_next_node<nReferrals>(adjlist, cNode, prevNode, (ReferralType) 0);
-    }
+	if( !nCandids ){//Handling special cases
+		Rf_warning(("cN "+to_string(cNode)+". Zero candid list!").c_str());
+		refer_next_node(adjList, acAdjList, cNode, prevNode, nReferrals, (ReferralType) 0, refVec);
+		return;
+	}
 
-    if( nReferrals == 1 || nCandids == 1 ){ //single referral for the Markov chain/tree simulation
-
-        const int id = random_int(0, nCandids-1);
-
-        RASSERT(id < possibleReferrals.size() );
-        const int nextNode = get<0>( possibleReferrals[id] );
-        return vector<Referral> { make_tuple(nextNode, weight) };
-
-    } else if( nReferrals == 2 ){
-
-        if( typeOneNCandids > 0 && typeTwoNCandids > 0){
-
-            const int idOne = random_int(0, typeOneNCandids-1);
-            const int idTwo = typeOneNCandids + random_int(0, typeTwoNCandids-1);
-            const auto node1 = get<0>( possibleReferrals[idOne] );
-            const auto node2 = get<0>( possibleReferrals[idTwo] );
-            if( node1 != node2 )
-                return vector<Referral> {make_tuple(node1,weight), make_tuple(node2,weight)};
-            else
-                return vector<Referral> {make_tuple(node1,weight)};
-
-        } else if( typeOneNCandids == 0 ){
-            const int idTwo = typeOneNCandids + random_int(0, typeTwoNCandids-1);
-            const auto node2 = get<0>( possibleReferrals[idTwo] );
-            return vector<Referral> {make_tuple(node2,weight)};
-        } else if( typeTwoNCandids == 0 ){
-            const int idOne = random_int(0, typeOneNCandids-1);
-            const auto node1 = get<0>( possibleReferrals[idOne] );
-            const auto node2 = get<1>( possibleReferrals[idOne] );
-            return vector<Referral> {make_tuple(node1,weight), make_tuple(node2,weight)};
-        } else
-            RASSERT(0);
-
-    } else if( nReferrals == 3 ){
-
-        vector<Referral> refVec;
-        int node1, node2;
-        if( typeOneNCandids > 0 ){
-            const int idOne = random_int(0, typeOneNCandids-1);
-            node1 = get<0>( possibleReferrals[idOne] );
-            node2 = get<1>( possibleReferrals[idOne] );
-
-            refVec.push_back( make_tuple(node1, weight) );
-            if(node1 != node2 )
-                refVec.push_back( make_tuple(node2, weight) );
-        }
-
-        if( typeTwoNCandids > 0 ){
-            const int idTwo  = typeOneNCandids + random_int(0, typeTwoNCandids-1);
-            const auto node3 = get<0>( possibleReferrals[idTwo] );
-
-            if(node3 != node1 && node3 != node2)
-                refVec.push_back( make_tuple(node3, weight) );
-        }
-
-        RASSERT(refVec.size() > 0);
-        return refVec;
-    } 
-
+	for(int i=0; i < nReferrals; i++){
+		const int id = random_int(0, nCandids-1);
+		RASSERT(id < possibleReferrals.size() );
+		const int nextNode = possibleReferrals[id];
+		refVec.push_back( make_tuple(nextNode, weight) );
+	}
 }
 
 
-template<int nReferrals>
-vector<Referral> refer_next_node(const AdjList &adjlist, const int cNode, const int prevNode, 
-        const ReferralType rt){
+void refer_next_node(const AdjList &adjList, 
+		const AdjList &acAdjList,
+		const int cNode, const int prevNode, 
+		const int nReferrals, const ReferralType rt,
+		 vector<Referral>& refVec){
 
-    RASSERT( cNode < adjlist.size() && cNode >= 0);
-    RASSERT( prevNode < adjlist.size() && prevNode >= 0);
-    RASSERT( nReferrals < 4 && nReferrals > 0 );
+	RASSERT( cNode < adjList.size() && cNode >= 0);
+	RASSERT( prevNode < adjList.size() && prevNode >= 0);
+	RASSERT( nReferrals > 0 );
+	//RASSERT( nReferrals < 4 );
 
-    if( rt == AC_RW ) 
-        return refer_next_node_ac_rw <nReferrals>(adjlist, cNode, prevNode, rt);
+	if( rt == AC_RW ) {
+		refer_next_node_ac_rw (adjList, acAdjList, cNode, prevNode, nReferrals, rt, refVec);
+		return;
+	}
 
 
-    const auto list      = adjlist[cNode];
-    const int nNeighbors = list.size();
-    const double weight  = 1/(double) nNeighbors;
+	const auto list      = adjList[cNode];
+	const int nNeighbors = list.size();
+	const double weight  = 1/(double) nNeighbors;
 
-    vector<Referral> refVec;
-
-    const int firstIdx = random_int(0, nNeighbors-1);
-    const int firstNode = list[ firstIdx ];
-
-    refVec.push_back( make_tuple(firstNode, weight) );
-
-    if (nReferrals == 1 || nNeighbors < 2) 
-        return refVec;
-
-    //NOTE: scenario for referring the second node; a w/o replacement sampling from neighbors.
-    const int secondIdx  = random_int(0, nNeighbors-1);
-    const int secondNode = list[ secondIdx ];
-
-    if( secondNode != firstNode )
-        refVec.push_back( make_tuple( secondNode, weight) );
-
-    if (nReferrals == 2 || nNeighbors < 3) 
-        return refVec;
-
-    const int thirdIdx = random_int(0, nNeighbors-1);
-    const int thirdNode = list[ thirdIdx ];
-
-    if( thirdNode != firstNode && thirdNode != secondNode )
-        refVec.push_back( make_tuple( thirdNode, weight) );
-
-    return refVec;
+	for(int i=0; i<nReferrals; i++){
+		const int firstIdx = random_int(0, nNeighbors-1);
+		const int firstNode = list[ firstIdx ];
+		refVec.push_back( make_tuple(firstNode, weight) );
+	}
 
 } 
 
+
 inline void fill_log(Matrix &logs, const int currentNode, const Referral nextReferral, const int wave, const int l){
-        //NOTE: currentNode; It has to be modified to R array format that indexing starts from 1
-        logs(l,0) = currentNode + 1;
-        logs(l,1) = get<0>( nextReferral ) + 1;
-        //NOTE: the probability of choosing the next node from the candid list
-        logs(l,2) = get<1>( nextReferral );
-        //NOTE: wave 
-        logs(l,3) = wave;
+	//NOTE: currentNode; It has to be modified to R array format that indexing starts from 1
+	logs(l,0) = currentNode + 1;
+	logs(l,1) = get<0>( nextReferral ) + 1;
+	//NOTE: the probability of choosing the next node from the candid list
+	logs(l,2) = get<1>( nextReferral );
+	//NOTE: wave 
+	logs(l,3) = wave;
 }
 
-Matrix sim_referral_chain(const AdjList &adjlist,
-        const ReferralType rt, 
-        const int chainLength, 
-        const int seedNode, const unsigned int rseed, 
-        Matrix &logs){
+Matrix sim_referral_chain(const AdjList &adjList,
+		const AdjList &acAdjList,
+		const ReferralType rt, 
+		const int chainLength, 
+		const int seedNode, const unsigned int rseed, 
+		Matrix &logs){
 
 
-    RASSERT(logs.nrow() == chainLength);
-    RASSERT(logs.ncol() == 4);
+	RASSERT(logs.nrow() == chainLength);
+	RASSERT(logs.ncol() == 4);
 
-    if(adjlist[seedNode].size() == 0)
-        Rf_error("The seed node is an isolated node!");
+	if(adjList[seedNode].size() == 0)
+		Rf_error("The seed node is an isolated node!");
 
-    int currentNode = seedNode, previousNode = seedNode;
+	int currentNode = seedNode, previousNode = seedNode;
 
-    for(int level = 0; level<chainLength; ++level){
+	for(int level = 0; level<chainLength; ++level){
 
-        const int nNeighbors = adjlist[currentNode].size();
-        if (nNeighbors == 0)
-            Rf_error("Zero neighbors! That should not happen.");
+		const int nNeighbors = adjList[currentNode].size();
+		if (nNeighbors == 0)
+			Rf_error("Zero neighbors! That should not happen.");
 
-        const auto nextReferralVec = refer_next_node<1>(adjlist, currentNode, previousNode, rt);
-        const auto nextReferral    = nextReferralVec[0];
+		vector<Referral> nextReferralVec;
+	       	refer_next_node(adjList, acAdjList, currentNode, previousNode, 1, rt, nextReferralVec);
+		const auto nextReferral  = nextReferralVec[0];
 
-        //NOTE: I assume that the node that enters the sampling is referred directly by a participant.
-        RASSERT( are_neighbor(adjlist, currentNode, get<0>( nextReferral ) ) );
+		//NOTE: I assume that the node that enters the sampling is referred directly by a participant.
+		RASSERT( are_neighbor(adjList, currentNode, get<0>( nextReferral ) ) );
 
-        fill_log(logs, currentNode, nextReferral, level, level); 
+		fill_log(logs, currentNode, nextReferral, level, level); 
 
-        previousNode = currentNode;
-        currentNode  = get<0>(nextReferral);
-    }
-    return logs;
-}
-
-
-Matrix sim_referral_tree(
-        const AdjList &adjlist,
-        const ReferralType rt, const bool wReplacement,
-        const int nSamples,    int nReferrals,
-        const int seedNode,    const unsigned int rseed, 
-        Matrix &logs
-        ){
-
-    if (adjlist[seedNode].size() == 0)
-        Rf_error("The seed node is an isolated node!");
-
-    RASSERT(logs.nrow() == nSamples);
-    RASSERT(logs.ncol() == 4);
-
-    bool Markovian = true;
-    if(nReferrals < 0){
-        nReferrals = -1*nReferrals;
-        Markovian  = false;
-    }
-
-    int currentNode = seedNode, previousNode = seedNode, wave=0;
-    double weight = 1;
-
-    std::set<int> visitedNodes;
-    visitedNodes.insert(currentNode);
-
-    //node, parent, weight, wave number
-    typedef tuple<int, int, double, int> QObject;
-    queue<QObject> toBeVisited;
-    toBeVisited.push( QObject(currentNode, previousNode, weight, wave) );
-
-    int counter=0;
-    for(; counter<nSamples; ++counter){
-
-        const int nNeighbors = adjlist[currentNode].size();
-        RASSERT( nNeighbors > 0 );
-        if( toBeVisited.size() == 0 )
-            break;
-
-        const auto qObj = toBeVisited.front(); 
-        toBeVisited.pop();
-
-        currentNode  = get<0>(qObj);
-        previousNode = get<1>(qObj);
-        weight       = get<2>(qObj);
-        wave         = get<3>(qObj);
-
-
-        //if(!wReplacement){
-        //    if( visitedNodes.find(currentNode) != visitedNodes.end() ){
-        //        --counter;
-        //        continue;
-        //    }
-        //    visitedNodes.insert(currentNode);
-        //}
-
-        fill_log(logs, previousNode, make_tuple(currentNode, weight), wave, counter); 
-
-        if( Markovian ){
-            for(int i=0; i < nReferrals; ++i){
-                const auto nextReferralVec = refer_next_node<1>(adjlist, currentNode, previousNode, rt);
-                const auto nextReferral    = nextReferralVec[0];
-                const auto nextNode        = get<0>(nextReferral);
-                if( wReplacement )
-                    toBeVisited.push( QObject( nextNode, currentNode, get<1>( nextReferral ), wave+1) );
-                else if( visitedNodes.find(nextNode) == visitedNodes.end() ){
-                    toBeVisited.push( QObject( nextNode, currentNode, get<1>( nextReferral ), wave+1) );
-                    visitedNodes.insert(nextNode);
-                }
-            }
-        } else {
-            
-            vector<Referral>  nextReferralVec;
-            if(nReferrals == 1)
-                nextReferralVec = refer_next_node<1>(adjlist, currentNode, previousNode, rt);
-            else if(nReferrals == 2)
-                nextReferralVec = refer_next_node<2>(adjlist, currentNode, previousNode, rt);
-            else if(nReferrals == 3)
-                nextReferralVec = refer_next_node<3>(adjlist, currentNode, previousNode, rt);
-            else RASSERT(0)
-
-            for(int i=0; i < nextReferralVec.size(); ++i){
-                const auto nextReferral = nextReferralVec[i];
-                const int  nextNode     = get<0>(nextReferral);
-                if( wReplacement )
-                    toBeVisited.push( QObject( nextNode, currentNode, get<1>(nextReferral), wave+1) );
-                else if( visitedNodes.find(nextNode) == visitedNodes.end() ){
-                    toBeVisited.push( QObject( nextNode, currentNode, get<1>(nextReferral), wave+1) );
-                    visitedNodes.insert(nextNode);
-                }
-            }
-
-
-        }
-    }
-
-    RASSERT(counter>0);
-    if(counter != nSamples){
-        Rcpp::Rcout<<"in counter less than nSamples"<<std::endl;
-        Matrix newlogs = Matrix(counter, logs.ncol());
-        for(int i=0; i<counter; ++i)
-            for(int j=0; j<logs.ncol(); ++j)
-                newlogs(i,j) = logs(i,j);
-        logs = newlogs;
-    }
-    return logs;
+		previousNode = currentNode;
+		currentNode  = get<0>(nextReferral);
+	}
+	return logs;
 }
 
 
-// [[Rcpp::export]]
-std::vector<std::vector<double> >  adj2list(SEXP X_) 
-{
+Matrix sim_referral_tree( const AdjList &adjList,
+		const AdjList &acAdjList,
+		const ReferralType rt, const bool wReplacement,
+		const int nSamples,    int nReferrals,
+		const int seedNode,    const unsigned int rseed, 
+		Matrix &logs
+		){
 
-    typedef Eigen::Map<Eigen::MatrixXd> MapMatd;
-    const MapMatd A(Rcpp::as<MapMatd>(X_));
+	if (adjList[seedNode].size() == 0)
+		Rf_error("The seed node is an isolated node!");
 
-    RASSERT( A.cols() == A.rows() );
-    AdjList adjlist;	
-    for (int i=0; i<A.rows(); ++i){
-        vector<double> vec;
-        for (int j=0; j<A.cols(); ++j)
-            if ( A(i,j) != 0 )
-                vec.push_back( j );
-        adjlist.push_back( vec );
-    }
+	if (acAdjList[seedNode].size() == 0)
+		Rf_error("The seed node is an isolated node in AcAdjList!");
 
-    for (auto list:adjlist)
-        sort(list.begin(), list.end());
-    return adjlist;
+	RASSERT(logs.nrow() == nSamples);
+	RASSERT(logs.ncol() == 4);
+
+	bool Markovian = true;
+	if(nReferrals < 0){
+		nReferrals = -1*nReferrals;
+		Markovian  = false;
+	}
+
+	int currentNode = seedNode, previousNode = seedNode, wave=0;
+	double weight = 1;
+
+	std::set<int> visitedNodes;
+	visitedNodes.insert(currentNode);
+
+	//node, parent, weight, wave number
+	typedef tuple<int, int, double, int> QObject;
+	queue<QObject> toBeVisited;
+	toBeVisited.push( QObject(currentNode, previousNode, weight, wave) );
+
+	int counter=0;
+	for(; counter<nSamples; ++counter){
+
+		RASSERT( adjList[currentNode].size()   > 0 );
+		RASSERT( acAdjList[currentNode].size() > 0 );
+
+		if( toBeVisited.size() == 0 )
+			break;
+
+		const auto qObj = toBeVisited.front(); 
+		toBeVisited.pop();
+
+		currentNode  = get<0>(qObj);
+		previousNode = get<1>(qObj);
+		weight       = get<2>(qObj);
+		wave         = get<3>(qObj);
+
+		//RASSERT( ! are_not_neighbor(adjList, currentNode, previousNode) );
+
+
+		//if(!wReplacement){
+		//    if( visitedNodes.find(currentNode) != visitedNodes.end() ){
+		//        --counter;
+		//        continue;
+		//    }
+		//    visitedNodes.insert(currentNode);
+		//}
+
+		fill_log(logs, previousNode, make_tuple(currentNode, weight), wave, counter); 
+
+		vector<Referral> nextReferralVec; 
+		if( wReplacement ){
+			refer_next_node(adjList, acAdjList, currentNode, previousNode, nReferrals, rt, nextReferralVec);
+			for(int i=0; i < nReferrals; ++i){
+				const auto nextReferral    = nextReferralVec[i];
+				const auto nextNode        = get<0>(nextReferral);
+				toBeVisited.push( QObject( nextNode, currentNode, get<1>( nextReferral ), wave+1) );
+			}
+		} else {
+			const int maxNReferrals = nReferrals; //10*nReferrals;
+			refer_next_node(adjList, acAdjList, currentNode, previousNode, maxNReferrals, rt, nextReferralVec);
+			for(int i=0, refIdx=0; i < nReferrals && refIdx < maxNReferrals; ++i, ++refIdx){
+
+				auto nextReferral = nextReferralVec[refIdx];
+				auto nextNode     = get<0>(nextReferral);
+
+				//while( visitedNodes.find(nextNode) != visitedNodes.end() 
+				//		&& refIdx < (maxNReferrals -1) ){
+				//	nextReferral = nextReferralVec[++refIdx];
+				//	nextNode     = get<0>(nextReferral);
+				//}
+
+				if( visitedNodes.find(nextNode) == visitedNodes.end() ){
+					toBeVisited.push( QObject( nextNode, currentNode, get<1>( nextReferral ), wave+1) );
+					visitedNodes.insert(nextNode);
+				}
+			}
+		}
+
+	}
+
+	RASSERT(counter>0);
+	if(counter != nSamples){
+		//Rcpp::Rcout<<"in counter less than nSamples"<<std::endl;
+		Matrix newlogs = Matrix(counter, logs.ncol());
+		for(int i=0; i<counter; ++i)
+			for(int j=0; j<logs.ncol(); ++j)
+				newlogs(i,j) = logs(i,j);
+		logs = newlogs;
+	}
+	return logs;
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjlist, std::string rType, 
-        bool wReplacement, 
-        int nSamples, int nReferrals, int seedNode, int rseed) {
+Rcpp::List adj2list(SEXP X_){
 
-    //NOTE: set the random seed
-    srand(rseed);
+	typedef Eigen::Map<Eigen::MatrixXd> MapMatd;
+	const MapMatd A(Rcpp::as<MapMatd>(X_));
 
-    //NOTE: nReferrals == 1; chain
-    //NOTE: nReferrals >  1; a tree
-    
-    AdjList adjlist;
-    for(auto l:rcpp_adjlist)
-        adjlist.push_back( Rcpp::as<AdjList::value_type>(l) );
+	RASSERT( A.cols() == A.rows() );
+	AdjList adjList;	
+	for (int i=0; i<A.rows(); ++i){
+		vector<int> vec;
+		for (int j=0; j<A.cols(); ++j)
+			if ( A(i,j) != 0 )
+				vec.push_back( j );
+		adjList.push_back( vec );
+	}
 
-    //FIXME add it as an input argument
-    bool sortAdjacancyList = false;
-    if( sortAdjacancyList )
-        for (auto l:adjlist)
-            sort(l.begin(), l.end());
+	for (auto list:adjList)
+		sort(list.begin(), list.end());
+	
+	AdjList acAdjList;	
+	for (int node=0; node<adjList.size(); node++){
+		vector<int> vec;
+		enumerate_ac_rw_possible_referrals(adjList, node, vec);
+		acAdjList.push_back( vec );
+	}
 
-    RASSERT( nSamples   > 0 );
-    RASSERT( nReferrals > -4 );
 
-    if(nReferrals == 1 && wReplacement==false)
-        nReferrals = -1; // it is implemented in sim_referral_tree 
+	Rcpp::List L;
+	L = Rcpp::List::create( Rcpp::Named("AdjList") = adjList,  
+				Rcpp::Named("AcAdjList") = acAdjList  );
+	return L;
+}
 
-    //NOTE: seedNode; It has to be modified from R array format that indexing starts from 1 to cpp format
-    seedNode = seedNode - 1;
-    if( seedNode < 0 || seedNode >= adjlist.size() )
-        Rf_error("The seed node is not in the range!");
+// [[Rcpp::export]]
+Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjList, 
+		Rcpp::List rcpp_acAdjList, 
+		std::string rType, 
+		bool wReplacement, 
+		int nSamples, int nReferrals, int seedNode, int rseed) {
 
-    ReferralType rt;
-    if(rType == "sRW")
-        rt = SIMP_RW;
-    else if(rType == "acRW")
-        rt = AC_RW;
-    else 
-        Rf_error("Undefined referral type!");
+	//NOTE: set the random seed
+	srand(rseed);
 
-    Matrix logMatrix(nSamples, 4);
-    colnames(logMatrix) = Rcpp::CharacterVector::create("participant_i", "participant_i+1", "weight", "wave");
-    if(nReferrals == 1)
-        sim_referral_chain(adjlist, rt, nSamples, seedNode, rseed, logMatrix);
-    else
-        sim_referral_tree (adjlist, rt, wReplacement, nSamples, nReferrals, seedNode, rseed, logMatrix);
 
-    return logMatrix;
+	ReferralType rt;
+	if(rType == "sRW")
+		rt = SIMP_RW;
+	else if(rType == "acRW")
+		rt = AC_RW;
+	else 
+		Rf_error("Undefined referral type!");
+
+	//NOTE: nReferrals == 1; chain
+	//NOTE: nReferrals >  1; a tree
+
+	AdjList adjList, acAdjList;
+	for(auto l:rcpp_adjList)
+		adjList.push_back( Rcpp::as<AdjList::value_type>(l) );
+
+	
+	for(auto l:rcpp_acAdjList)
+		acAdjList.push_back( Rcpp::as<AdjList::value_type>(l) );
+
+	//FIXME add it as an input argument
+	bool sortAdjacancyList = false;
+	if( sortAdjacancyList )
+		for (auto l:adjList)
+			sort(l.begin(), l.end());
+
+	RASSERT( nSamples   > 0 );
+	RASSERT( nReferrals > -4 );
+
+	if(nReferrals == 1 && wReplacement==false)
+		nReferrals = -1; // it is implemented in sim_referral_tree 
+
+	//NOTE: seedNode; It has to be modified from R array format that indexing starts from 1 to cpp format
+	seedNode = seedNode - 1;
+	if( seedNode < 0 || seedNode >= adjList.size() )
+		Rf_error("The seed node is not in the range!");
+
+
+	Matrix logMatrix(nSamples, 4);
+	colnames(logMatrix) = Rcpp::CharacterVector::create("participant_i", "participant_i+1", "weight", "wave");
+	if(nReferrals == 1)
+		sim_referral_chain (adjList, acAdjList, rt, nSamples, seedNode, rseed, logMatrix);
+	else
+		sim_referral_tree  (adjList, acAdjList, rt, wReplacement, nSamples, nReferrals, seedNode, rseed, logMatrix);
+
+	return logMatrix;
 }
 
 

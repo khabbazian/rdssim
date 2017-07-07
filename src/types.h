@@ -1,7 +1,7 @@
 #pragma once
 
-//#define RASSERT(condition){if(!(condition)){Rf_error(("error@"+to_string(__LINE__)+":"+__FILE__).c_str());}}
-#define RASSERT(condition){}
+#define RASSERT(condition){if(!(condition)){Rf_error(("error@"+to_string(__LINE__)+":"+__FILE__).c_str());}}
+//#define RASSERT(condition){}
 
 #include <iostream>
 #include <algorithm>
@@ -43,7 +43,7 @@ typedef vector<double> LogVector;
 typedef vector<vector<double> > LogVectors;
 typedef vector<int> Chain;
 typedef vector<string> NameVector;
-typedef vector<vector<double> > AdjList;
+typedef vector<vector<int> > AdjList;
 typedef vector<vector<double> > AdjWeightList;
 typedef vector<double> TraitList;
 typedef std::pair<int,int> NodePair;
