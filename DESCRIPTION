@@ -5,7 +5,8 @@ Version: 1.20
 Date: 2015-12-15
 Author: Mohammad Khabbazian
 Maintainer: Mohammad Khabbazian <khabbazian@wisc.edu>
-Description: An R package for generating and analyzing respondent-driven sampling referral trees/chains
+Description: An R package for generating and analyzing respondent-driven
+    sampling referral trees/chains
 License: GPL (>= 2)
 Imports:
     Rcpp (>= 0.12.2),
@@ -15,4 +16,4 @@ VignetteBuilder: knitr
 Suggests:
     knitr,
     rmarkdown
-RoxygenNote: 6.0.1
+RoxygenNote: 5.0.1

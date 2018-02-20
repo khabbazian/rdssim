@@ -25,3 +25,4 @@ Let x_1, x_2, \\cdots, x_n be a sequence of samples from a finite population of 
 \references{
 Horvitz, D. G.; Thompson, D. J. (1952) ``A generalization of sampling without replacement from a finite universe'', Journal of the American Statistical Association,
 }
+

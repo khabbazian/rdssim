@@ -25,3 +25,4 @@ Let x_1, x_2, \\cdots, x_n be a sequence of samples from a finite population. Fu
 \references{
 Volz, Erik and Heckathorn, Douglas D (2008); ``Probability based estimation theory for respondent driven sampling'', Journal of official statistics.
 }
+
