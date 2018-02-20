@@ -1,4 +1,7 @@
-### A simple package to simulate Respondent-driven Sampling referral chains and trees
+### An R package for generating and analyzing respondent-driven sampling referral trees/chains
+This package was developed to carry out the simulations section of 
+``Khabbazian, Mohammad, et al. Novel sampling design for respondent-driven sampling. arXiv preprint arXiv:1606.00387 (2016).''
+
 #### [rdssim Reference manual](http://homepages.cae.wisc.edu/~khabbazian/pdfs/rdssim.pdf)
 
 ### Install using the devtools package.

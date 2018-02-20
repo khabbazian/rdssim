@@ -2,25 +2,44 @@
 #'Converts an adjacency matrix into the adjacency list
 #'
 #'@param A a symmetric unweighted adjacency matrix.
+#'
+#'@param ac.type indicates the anti clustering referral distribution types.
+#'Type "Two" is "refer friends based on the number of friends they have that you
+#'don't know", type "One" is "refer friends based on the number of friends you
+#'have that don't know them" and type "Both" means type "One" and "Two".
+#'
 #'@export 
-adj2list <- function(A) {
+adj2list <- function(A, ac.type=c("Both", "Two", "One")){
     stopifnot( isSymmetric(A) )
-    .Call('rdssim_adj2list', PACKAGE = 'rdssim', A)
+    .Call('rdssim_adj2list', PACKAGE = 'rdssim', A, ac.type)
 }
+
+
 
 #'
 #'Simulates referral chains/trees for Respondent-driven sampling
 #'
-#'@param adjList adjacency list of the input social network. It assumes that adjList represents an undirected network. Refer to \code{adj2list}.
-#'@param acAdjList AC random walk adjacency list of the input social network. Refer to \code{adj2list}.
-#'@param rType referral type.
-#'@param wRreplacement if TRUE, then the referral chain/tree will be done with replacement.
+#'@param adjList adjacency list of the input social network. It assumes that
+#'adjList represents an undirected network. Refer to \code{adj2list}.
+#'@param acAdjList anti clustering random walk adjacency list of the input social network.
+#'Refer to \code{adj2list}.
+#'@param referral.type referral type. It can be "sRW", simple random walk, or
+#'"acRW", anti-cluster random walk.
+#'@param wRreplacement if TRUE, then the referral chain/tree will be collected with replacement.
 #'@param nSamples number of samples to be collected.
-#'@param nReferrals number of referral per vertex.
-#'@param seedNode the starting vertex.
-#'@param rseed random seed for random number generators.
+#'@param nReferrals number of referral per participant (or node) 
+#'@param seedNode the starting seed participant (or node).
+#'@param rseed random seed for random number generators inside the code. It is useful for reproducing results.
+#'
+#'@references
+#'
+#'Khabbazian, Mohammad, Bret Hanlon, Zoe Russek, and Karl Rohe. "Novel sampling
+#'design for respondent-driven sampling." Electronic Journal of Statistics 11,
+#'no. 2 (2017): 4769-4812.'
+#'
+#'
 #'@export 
-rdssim <- function(adjList, acAdjList, rType, wRreplacement, nSamples, nReferrals, seedNode, rseed) {
-    .Call('rdssim_rdssim_cpp', PACKAGE = 'rdssim', adjList, acAdjList, rType, wRreplacement, nSamples, nReferrals, seedNode, rseed)
+rdssim <- function(adjList, acAdjList, referral.type=c("sRW","acRW"), wRreplacement=TRUE, nSamples, nReferrals, seedNode, rseed) {
+    .Call('rdssim_rdssim_cpp', PACKAGE = 'rdssim', adjList, acAdjList, referral.type, wRreplacement, nSamples, nReferrals, seedNode, rseed)
 }
 

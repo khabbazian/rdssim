@@ -4,27 +4,34 @@
 \alias{rdssim}
 \title{Simulates referral chains/trees for Respondent-driven sampling}
 \usage{
-rdssim(adjList, acAdjList, rType, wRreplacement, nSamples, nReferrals, seedNode,
-  rseed)
+rdssim(adjList, acAdjList, referral.type = c("sRW", "acRW"),
+  wRreplacement = TRUE, nSamples, nReferrals, seedNode, rseed)
 }
 \arguments{
-\item{adjList}{adjacency list of the input social network. It assumes that adjList represents an undirected network. Refer to \code{adj2list}.}
+\item{adjList}{adjacency list of the input social network. It assumes that
+adjList represents an undirected network. Refer to \code{adj2list}.}
 
-\item{acAdjList}{AC random walk adjacency list of the input social network. Refer to \code{adj2list}.}
+\item{acAdjList}{anti clustering random walk adjacency list of the input social network.
+Refer to \code{adj2list}.}
 
-\item{rType}{referral type.}
+\item{referral.type}{referral type. It can be "sRW", simple random walk, or
+"acRW", anti-cluster random walk.}
 
-\item{wRreplacement}{if TRUE, then the referral chain/tree will be done with replacement.}
+\item{wRreplacement}{if TRUE, then the referral chain/tree will be collected with replacement.}
 
 \item{nSamples}{number of samples to be collected.}
 
-\item{nReferrals}{number of referral per vertex.}
+\item{nReferrals}{number of referral per participant (or node)}
 
-\item{seedNode}{the starting vertex.}
+\item{seedNode}{the starting seed participant (or node).}
 
-\item{rseed}{random seed for random number generators.}
+\item{rseed}{random seed for random number generators inside the code. It is useful for reproducing results.}
 }
 \description{
 Simulates referral chains/trees for Respondent-driven sampling
 }
-
+\references{
+Khabbazian, Mohammad, Bret Hanlon, Zoe Russek, and Karl Rohe. "Novel sampling
+design for respondent-driven sampling." Electronic Journal of Statistics 11,
+no. 2 (2017): 4769-4812.'
+}

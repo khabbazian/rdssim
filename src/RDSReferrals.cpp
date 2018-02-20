@@ -11,6 +11,10 @@
 //NOTE: AC_RW:  AC random walk choses uniformly from the set of nodes form wedge
 //NOTE: with current node.
 
+
+enum ReferralType  {SIMP_RW, AC_RW};
+enum AC_Type       {ONE, TWO, BOTH};
+
 // returns a random integer X in the set {l, l+1, ..., u}.
 int random_int(const int l, const int u){
 	RASSERT( l <= u );
@@ -18,7 +22,6 @@ int random_int(const int l, const int u){
 	return (int) uR;
 }
 
-enum ReferralType{SIMP_RW, AC_RW};
 
 inline bool are_not_neighbor(const AdjList &adjList, const int node1, const int node2){
 
@@ -40,18 +43,24 @@ inline bool are_neighbor(const AdjList &adjList, const int node1, const int node
 
 void refer_next_node(const AdjList &, const AdjList &, const int, const int, const int, const ReferralType, vector<Referral>&);
 
-void enumerate_ac_rw_possible_referrals(const AdjList& adjList, const int cNode, vector<int>& possibleReferrals){
+
+void enumerate_ac_rw_possible_referrals(const AdjList& adjList, const int cNode, 
+		vector<int>& possibleReferrals, const AC_Type acType){
 
 	const auto list = adjList[cNode];
-	for(auto item1:list)
-		for(auto item2:list)
-			if ( are_not_neighbor(adjList, item1, item2) )
-				possibleReferrals.push_back( item1 );
+	if( acType == BOTH || acType == ONE ){
+		for(auto item1:list)
+			for(auto item2:list)
+				if ( are_not_neighbor(adjList, item1, item2) )
+					possibleReferrals.push_back( item1 );
+	}
 
-	for(auto item1:list)
-		for(auto item2:adjList[item1])
-			if ( are_not_neighbor(adjList, item2, cNode) )
-				possibleReferrals.push_back( item1 );
+	if( acType == BOTH || acType == TWO ){
+		for(auto item1:list)
+			for(auto item2:adjList[item1])
+				if ( are_not_neighbor(adjList, item2, cNode) )
+					possibleReferrals.push_back( item1 );
+	}
 }
 
 void refer_next_node_ac_rw(const AdjList &adjList, const AdjList &acAdjList, 
@@ -151,7 +160,7 @@ Matrix sim_referral_chain(const AdjList &adjList,
 		const auto nextReferral  = nextReferralVec[0];
 
 		//NOTE: I assume that the node that enters the sampling is referred directly by a participant.
-		RASSERT( are_neighbor(adjList, currentNode, get<0>( nextReferral ) ) );
+		//RASSERT( are_neighbor(adjList, currentNode, get<0>( nextReferral ) ) );
 
 		fill_log(logs, currentNode, nextReferral, level, level); 
 
@@ -270,7 +279,7 @@ Matrix sim_referral_tree( const AdjList &adjList,
 }
 
 // [[Rcpp::export]]
-Rcpp::List adj2list(SEXP X_){
+Rcpp::List adj2list(SEXP X_, std::string acType){
 
 	typedef Eigen::Map<Eigen::MatrixXd> MapMatd;
 	const MapMatd A(Rcpp::as<MapMatd>(X_));
@@ -287,11 +296,21 @@ Rcpp::List adj2list(SEXP X_){
 
 	for (auto list:adjList)
 		sort(list.begin(), list.end());
+
+	AC_Type act;
+	if( acType == "One")
+		act = ONE;
+	else if( acType == "Two")
+		act = TWO;
+	else if( acType == "Both")
+	      act = BOTH;	
+	else
+		Rf_error("Undefined anti clustering referral type!");
 	
 	AdjList acAdjList;	
 	for (int node=0; node<adjList.size(); node++){
 		vector<int> vec;
-		enumerate_ac_rw_possible_referrals(adjList, node, vec);
+		enumerate_ac_rw_possible_referrals(adjList, node, vec, act);
 		acAdjList.push_back( vec );
 	}
 
@@ -305,7 +324,7 @@ Rcpp::List adj2list(SEXP X_){
 // [[Rcpp::export]]
 Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjList, 
 		Rcpp::List rcpp_acAdjList, 
-		std::string rType, 
+		std::string referralType, 
 		bool wReplacement, 
 		int nSamples, int nReferrals, int seedNode, int rseed) {
 
@@ -314,9 +333,9 @@ Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjList,
 
 
 	ReferralType rt;
-	if(rType == "sRW")
+	if(referralType == "sRW")
 		rt = SIMP_RW;
-	else if(rType == "acRW")
+	else if(referralType == "acRW")
 		rt = AC_RW;
 	else 
 		Rf_error("Undefined referral type!");

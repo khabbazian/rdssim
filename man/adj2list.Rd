@@ -4,12 +4,16 @@
 \alias{adj2list}
 \title{Converts an adjacency matrix into the adjacency list}
 \usage{
-adj2list(A)
+adj2list(A, ac.type = c("Both", "Two", "One"))
 }
 \arguments{
 \item{A}{a symmetric unweighted adjacency matrix.}
+
+\item{ac.type}{indicates the anti clustering referral distribution types.
+Type "Two" is refer friends based on the number of friends they have that you
+don't know, type "One" is refer friends based on the number of friends you
+have that don't know them and type "Both" means type "One" and "Two".}
 }
 \description{
 Converts an adjacency matrix into the adjacency list
 }
-

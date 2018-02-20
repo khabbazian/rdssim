@@ -17,4 +17,3 @@ mean(trait.vec[chain], na.rm=TRUE)
 \description{
 Sample mean estimation of the population mean using the given sequence of the vertices.
 }
-
