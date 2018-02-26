@@ -4,15 +4,13 @@
 \alias{rdssim}
 \title{Simulates referral chains/trees for Respondent-driven sampling}
 \usage{
-rdssim(adjList, acAdjList, referral.type = c("sRW", "acRW"),
-  wRreplacement = TRUE, nSamples, nReferrals, seedNode, rseed)
+rdssim(adjList, referral.type = c("sRW", "acRW"), wRreplacement = TRUE,
+  nSamples, nReferrals, seedNode, rseed)
 }
 \arguments{
-\item{adjList}{adjacency list of the input social network. It assumes that
-adjList represents an undirected network. Refer to \code{adj2list}.}
-
-\item{acAdjList}{anti clustering random walk adjacency list of the input social network.
-Refer to \code{adj2list}.}
+\item{adjList}{is the object \code{adj2list} returns. It has the adjacency
+list of the input social network. It assumes that adjList represents an
+undirected network. Refer to \code{adj2list}.}
 
 \item{referral.type}{referral type. It can be "sRW", simple random walk, or
 "acRW", anti-cluster random walk.}
@@ -35,4 +33,3 @@ Khabbazian, Mohammad, Bret Hanlon, Zoe Russek, and Karl Rohe. "Novel sampling
 design for respondent-driven sampling." Electronic Journal of Statistics 11,
 no. 2 (2017): 4769-4812.'
 }
-

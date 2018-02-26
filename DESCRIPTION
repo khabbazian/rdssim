@@ -1,19 +1,13 @@
 Package: rdssim
-Type: Package
-Title: A simple Respondent-driven sampling simulator
 Version: 1.20
 Date: 2015-12-15
+Title: A simple respondent-driven sampling simulator
 Author: Mohammad Khabbazian
 Maintainer: Mohammad Khabbazian <khabbazian@wisc.edu>
-Description: An R package for generating and analyzing respondent-driven
-    sampling referral trees/chains
+Description: An R package for generating and analyzing respondent-driven sampling referral trees/chains
 License: GPL (>= 2)
-Imports:
-    Rcpp (>= 0.12.2),
-    RcppEigen (>= 0.3.2.5.1)
+Imports: Rcpp (>= 0.12.2), RcppEigen (>= 0.3.2.5.1)
 LinkingTo: Rcpp, RcppEigen
 VignetteBuilder: knitr
-Suggests:
-    knitr,
-    rmarkdown
-RoxygenNote: 5.0.1
+Suggests: knitr, rmarkdown
+RoxygenNote: 6.0.1

@@ -22,4 +22,3 @@ Let \\pi, y, and d be the stationary distribution, the covariate and the
 distance respectively. Then cov(y(X_i),y(X_{i+d})) = \\sum_{i=2}^N <y,f_i>^2_\\pi
 \\lambda_i^d.
 }
-

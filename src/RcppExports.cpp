@@ -18,6 +18,7 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+
 // rdssim_cpp
 Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjList, Rcpp::List rcpp_acAdjList, std::string referralType, bool wReplacement, int nSamples, int nReferrals, int seedNode, int rseed);
 RcppExport SEXP rdssim_rdssim_cpp(SEXP rcpp_adjListSEXP, SEXP rcpp_acAdjListSEXP, SEXP referralTypeSEXP, SEXP wReplacementSEXP, SEXP nSamplesSEXP, SEXP nReferralsSEXP, SEXP seedNodeSEXP, SEXP rseedSEXP) {

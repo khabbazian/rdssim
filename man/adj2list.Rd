@@ -17,4 +17,3 @@ have that don't know them" and type "Both" means type "One" and "Two".}
 \description{
 Converts an adjacency matrix into the adjacency list
 }
-

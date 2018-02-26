@@ -345,11 +345,12 @@ Rcpp::NumericMatrix rdssim_cpp(Rcpp::List rcpp_adjList,
 
 	AdjList adjList, acAdjList;
 	for(auto l:rcpp_adjList)
-		adjList.push_back( Rcpp::as<AdjList::value_type>(l) );
+		//adjList.push_back( Rcpp::as<AdjList::value_type>(l) );
+		adjList.push_back( Rcpp::as<vector<int> >(l) );
 
-	
 	for(auto l:rcpp_acAdjList)
 		acAdjList.push_back( Rcpp::as<AdjList::value_type>(l) );
+
 
 	//FIXME add it as an input argument
 	bool sortAdjacancyList = false;

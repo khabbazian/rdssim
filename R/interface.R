@@ -19,10 +19,9 @@ adj2list <- function(A, ac.type=c("Both", "Two", "One")){
 #'
 #'Simulates referral chains/trees for Respondent-driven sampling
 #'
-#'@param adjList adjacency list of the input social network. It assumes that
-#'adjList represents an undirected network. Refer to \code{adj2list}.
-#'@param acAdjList anti clustering random walk adjacency list of the input social network.
-#'Refer to \code{adj2list}.
+#'@param adjList is the object \code{adj2list} returns. It has the adjacency
+#'list of the input social network. It assumes that adjList represents an
+#'undirected network. Refer to \code{adj2list}.
 #'@param referral.type referral type. It can be "sRW", simple random walk, or
 #'"acRW", anti-cluster random walk.
 #'@param wRreplacement if TRUE, then the referral chain/tree will be collected with replacement.
@@ -39,7 +38,7 @@ adj2list <- function(A, ac.type=c("Both", "Two", "One")){
 #'
 #'
 #'@export 
-rdssim <- function(adjList, acAdjList, referral.type=c("sRW","acRW"), wRreplacement=TRUE, nSamples, nReferrals, seedNode, rseed) {
-    .Call('rdssim_rdssim_cpp', PACKAGE = 'rdssim', adjList, acAdjList, referral.type, wRreplacement, nSamples, nReferrals, seedNode, rseed)
+rdssim <- function(adjList, referral.type=c("sRW","acRW"), wRreplacement=TRUE, nSamples, nReferrals, seedNode, rseed) {
+    .Call('rdssim_rdssim_cpp', PACKAGE = 'rdssim', adjList$AdjList, adjL$AcAdjList, referral.type, wRreplacement, nSamples, nReferrals, seedNode, rseed)
 }
 
