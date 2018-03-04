@@ -28,6 +28,22 @@ undirected network. Refer to \code{adj2list}.}
 \description{
 Simulates referral chains/trees for Respondent-driven sampling
 }
+\examples{
+
+generate.network <- function(N,con){
+   A <- matrix(0,ncol=N,nrow=N) # initialize with zeros
+   A[upper.tri(A)] <- rbinom(N*(N-1)/2,1,con) # fill up the upper triangle
+   A[lower.tri(A)] <- t(A)[lower.tri(A)] # fill up the lower triangle to obtain a symmetric matrix
+   A
+}
+
+ER <- generate.network(300,0.6)
+
+adjL <- adj2list(ER)
+res  <- rdssim(adjL, referral.type="sRW", wRreplacement = T, 
+                nSamples=100, nReferrals=3, seedNode=10, rseed=1)
+
+}
 \references{
 Khabbazian, Mohammad, Bret Hanlon, Zoe Russek, and Karl Rohe. "Novel sampling
 design for respondent-driven sampling." Electronic Journal of Statistics 11,

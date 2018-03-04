@@ -30,12 +30,25 @@ adj2list <- function(A, ac.type=c("Both", "Two", "One")){
 #'@param seedNode the starting seed participant (or node).
 #'@param rseed random seed for random number generators inside the code. It is useful for reproducing results.
 #'
-#'@references
+#'@examples
 #'
+#'generate.network <- function(N,con){
+#'    A <- matrix(0,ncol=N,nrow=N) # initialize with zeros
+#'    A[upper.tri(A)] <- rbinom(N*(N-1)/2,1,con) # fill up the upper triangle
+#'    A[lower.tri(A)] <- t(A)[lower.tri(A)] # fill up the lower triangle to obtain a symmetric matrix
+#'    A
+#'}
+#'
+#'ER <- generate.network(300,0.6)
+#'
+#'adjL <- adj2list(ER)
+#'res  <- rdssim(adjL, referral.type="sRW", wRreplacement = T, 
+#'                 nSamples=100, nReferrals=3, seedNode=10, rseed=1)
+#'
+#'@references
 #'Khabbazian, Mohammad, Bret Hanlon, Zoe Russek, and Karl Rohe. "Novel sampling
 #'design for respondent-driven sampling." Electronic Journal of Statistics 11,
 #'no. 2 (2017): 4769-4812.'
-#'
 #'
 #'@export 
 rdssim <- function(adjList, referral.type=c("sRW","acRW"), wRreplacement=TRUE, nSamples, nReferrals, seedNode, rseed) {
